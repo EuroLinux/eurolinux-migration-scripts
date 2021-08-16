@@ -4,9 +4,9 @@
 
 To migrate:
 
-- [] vagrant based test machines
-- [] at least public test sets
-- [] documentation
+- [ ] vagrant based test machines
+- [ ] at least public test sets
+- [ ] documentation
 
 ## Migrating to EuroLinux 7
 
