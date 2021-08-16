@@ -10,34 +10,34 @@ To migrate:
 
 ## Migrating to EuroLinux 7
 
-Right now migration to EuroLinux 7, from other Enterprise Linux 7, with scripts
-that are in this repository, is only possible **if you have a locally mirrored
-EuroLinux repository**.
+Right now migration to EuroLinux 7 from other Enterprise Linux 7 distro is
+possible with the script from this repository only **if you have a locally
+mirrored EuroLinux repository**.
 
-To migrate, firstly clone the git repository.
-
+To migrate, clone the git repository first:
 ```
 git clone https://github.com/EuroLinux/eurolinux-migration-scripts
 cd eurolinux-migration-scripts
 ```
 
-Then fill the `set_repos` function or comment its invocation on the bottom of
-the script.
-
-```bash
-# Change to the text editor of your choice
-vi migrate_to_el7.sh 
+Then edit the script by modifying the `set_repos` function - you must replace
+the `TODO-FIXME` placeholders with the URLs of your locally mirrored
+repositories and remove the `exit 1` line - a precaution that ensures you've
+modified the function.
+(alternatively comment out it being called on the bottom of the script)
+```
+# Change 'vi' to the text editor of your choice 
+vi migrate_to_el7.sh
 ```
 
-To run full system migration:
-
+Make sure to run the script with superuser privileges:
 ```bash
 sudo ./migrate_to_el7.sh
 ```
 
-If you want to run without full migration, export the `DISABLE_FULL_MIGRATION`
-variable with any value. Example:
-
+If you want to run without full migration (reinstalling already installed
+packages), export the `DISABLE_FULL_MIGRATION` variable with any value.
+Example:
 ```bash
 export DISABLE_FULL_MIGRATION=1
 sudo ./migrate_to_el7.sh
@@ -49,7 +49,5 @@ Work in progress - it will be published in a short time.
 
 ## Considerations
 
-- Please make a backup before running migration scripts
-- If you are using ISO as a locally mounted repository, the complete migration
-  reinstalls the `filesystem` package the ISO should not be mounted to the
-  `/mnt` directory.
+- Please make a backup before running any migration scripts
+- The *complete migration* reinstalls the `filesystem` package. If you are using an ISO as a locally mounted repository, the ISO should **not** be mounted at the `/mnt` directory.
