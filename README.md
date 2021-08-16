@@ -24,6 +24,11 @@ cd eurolinux-migration-scripts
 Then fill the `set_repos` function or comment its invocation on the bottom of
 the script.
 
+```bash
+# Change to the text editor of your choice
+vi migrate_to_el7.sh 
+```
+
 To run full system migration:
 
 ```bash
