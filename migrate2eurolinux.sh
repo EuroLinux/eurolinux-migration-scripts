@@ -511,6 +511,15 @@ debrand_modules() {
 
 swap_rpms() {
   case "$os_version" in
+    8*)
+      if [[ "$(rpm -qa '*-release' | grep -v 'el-release')" ]]; then
+        yum swap -y "*-release" "el-release"
+      fi
+
+      if [[ "$(rpm -qa '*-logos' | grep -v 'el-logos')" ]]; then
+        yum swap -y "*-logos" "el-logos"
+      fi
+      ;;
     7*)
       if [[ "$(rpm -qa '*-release')" ]] && [[ ! "$(rpm -qa 'oraclelinux-release-el7*')" ]]; then
         yum swap -y "*-release" "el-release"
