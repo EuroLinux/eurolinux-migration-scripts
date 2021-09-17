@@ -1,10 +1,10 @@
 # migrate2eurolinux
 
-## Switch from an Enterprise Linux flavor to EuroLinux
+## Switch from an Enterprise Linux system to EuroLinux
 
 This script will automatically switch an Enterprise Linux system to EuroLinux
-by removing any that-system-specific packages or replacing them with the
-EuroLinux equivalent.
+by removing any that-system-specific packages or replacing them with EuroLinux
+equivalents.
 
 ## Support
 
@@ -21,7 +21,7 @@ The following distributions are supported on the x86_64 architecture:
 ## Preparations
 
 The script covers the basics of several Enterprise Linux installations but it
-can't possible cover every existing non-standard configuration out there.  
+can't possibly cover every existing non-standard configuration out there.  
 Extra precautions have been arranged but there's always the risk of something
 going wrong in the process and users are always recommended to make a backup.  
 If your system release is lower than 8, make sure you have prepared valid
@@ -43,8 +43,8 @@ You can specify several parameters:
 - `-u` to specify your EuroMan username
 - `-p` to specify your EuroMan password
 
-EuroMan is applicable only to releases lower than 8 and if the credentials will
-be provided on release 8, the script won't use them.
+EuroMan is applicable only to releases lower than 8 and if the credentials are
+provided for release 8, the script won't use them.
 
 Sample non-interactive usage:
 
