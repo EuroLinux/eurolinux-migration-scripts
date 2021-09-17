@@ -1,55 +1,59 @@
-# WIP: eurolinux-migration-scripts
+# migrate2eurolinux
 
-**Work in Progress**.
+## Switch from an Enterprise Linux flavor to EuroLinux
 
-To migrate:
+This script will automatically switch an Enterprise Linux system to EuroLinux
+by removing any that-system-specific packages or replacing them with the
+EuroLinux equivalent.
 
-- [ ] vagrant based test machines
-- [ ] at least public test sets
-- [ ] documentation
+## Support
 
-## Migrating to EuroLinux 7
+The following distributions are supported on the x86_64 architecture:
+- AlmaLinux 8
+- CentOS 8
+- CentOS 7
+- Oracle Linux 8
+- Oracle Linux 7
+- Red Hat Enterprise Linux 7
+- Rocky Linux 8
+- Scientific Linux 7
 
-Right now migration to EuroLinux 7 from other Enterprise Linux 7 distro is
-possible with the script from this repository only **if you have a locally
-mirrored EuroLinux 7 repository**.
+## Preparations
 
-To migrate, clone the git repository first:
+The script covers the basics of several Enterprise Linux installations but it
+can't possible cover every existing non-standard configuration out there.  
+Extra precautions have been arranged but there's always the risk of something
+going wrong in the process and users are always recommended to make a backup.  
+If your system release is lower than 8, make sure you have prepared valid
+EuroMan credentials since they'll be necessary for registering that instance
+and migrating.
+
+## Usage
+
+Clone this repository on the instance you want to migrate (or just upload the
+raw script there), switch to root account and run the script as follows:
+
 ```
-git clone https://github.com/EuroLinux/eurolinux-migration-scripts
-cd eurolinux-migration-scripts
-```
-
-Then edit the script by modifying the `set_repos` function - you must replace
-the `TODO-FIXME` placeholders with the URLs of your locally mirrored
-repositories and remove the `exit 1` line - a precaution that ensures you've
-modified the function.
-
-(alternatively comment out it being called on the bottom of the script)
-```
-# Change 'vi' to the text editor of your choice 
-vi migrate_to_el7.sh
-```
-
-Make sure to run the script with superuser privileges:
-```bash
-sudo ./migrate_to_el7.sh
-```
-
-If you want to run without full migration (reinstalling already installed
-packages), export the `DISABLE_FULL_MIGRATION` variable with any value.
-
-Example:
-```bash
-export DISABLE_FULL_MIGRATION=1
-sudo ./migrate_to_el7.sh
+bash migrate2eurolinux.sh
 ```
 
-## Migrating to EuroLinux 8
+You can specify several parameters:
 
-Work in progress - it will be published in a short time.
+- `-f` to skip a warning message about backup recommendation. Necessary for running non-interactively.
+- `-u` to specify your EuroMan username
+- `-p` to specify your EuroMan password
 
-## Considerations
+EuroMan is applicable only to releases lower than 8 and if the credentials will
+be provided on release 8, the script won't use them.
 
-- Please make a backup before running any migration scripts
-- The complete migration reinstalls the `filesystem` package. If you are using an ISO as a locally mounted repository, the ISO should **not** be mounted at the `/mnt` directory.
+Sample non-interactive usage:
+
+```
+bash migrate2eurolinux.sh -f -u 'user@example.com' -p 'password123'
+```
+
+Or with debug and additional debug messages logging:
+
+```
+bash -x migrate2eurolinux.sh -f -u 'user@example.com' -p 'password123' | tee -a migration_debug.log
+```
