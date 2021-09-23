@@ -77,6 +77,9 @@ generate_rpms_info() {
 }
 
 check_root() {
+  # The script must be ran with superuser privileges any way possible. You can
+  # refer to the way described in README.md - just switch to the root account
+  # and run with `bash migrate2eurolinux.sh`
   if [ "$(id -u)" -ne 0 ]; then
       exit_message "You must run this script as root.
   Try running 'su -c ${0}'."
