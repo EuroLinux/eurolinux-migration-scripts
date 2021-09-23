@@ -122,6 +122,10 @@ verify_rpms_before_migration() {
 }
 
 check_supported_releases() {
+  # Our supported distros list mentioned earlier in check_distro() comments.
+  # In here this check is generalized and the old_release variable may be
+  # overridden later on once a more specific check is performed (this will be
+  # explained later once this override is performed).
   case "${old_release}" in
     redhat-release*) ;;
     centos-release* | centos-linux-release*) ;;
