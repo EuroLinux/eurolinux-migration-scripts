@@ -565,6 +565,7 @@ EOF
 }
 
 update_initrd() {
+  # Create a new initrd with EuroLinux bootsplash
   if [ -x /usr/libexec/plymouth/plymouth-update-initrd ]; then
     echo "Updating initrd..."
     /usr/libexec/plymouth/plymouth-update-initrd
