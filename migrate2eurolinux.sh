@@ -43,6 +43,9 @@ warning_message() {
 }
 
 dep_check() {
+  # Several utilities are needed for migrating. They may also differ in names
+  # and versions between Enterprise Linux releases. Check if one of them ($1)
+  # exists and exit if it doesn't.
   if ! command -v "$1"; then
       exit_message "'${1}' command not found. Please install or add it to your PATH and try again."
   fi
