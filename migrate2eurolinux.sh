@@ -195,6 +195,11 @@ check_systemwide_python() {
 }
 
 switch_module_branding() {
+  # Oracle Linux 8 modules are branded with 'ol8'. If one happens to be
+  # enabled, add it to an array for later use. There can also be some modules
+  # present that the script can't manage - if that happens, ask on what to do
+  # next.
+  # TODO: this function needs to be renamed. "get_branded_modules" perhaps?
   if [[ "$os_version" =~ 8.* ]]; then
     echo "Identifying dnf modules that are enabled..."
     mapfile -t modules_enabled < <(dnf module list --enabled | grep -E 'ol8?\ \[' | awk '{print $1}')
