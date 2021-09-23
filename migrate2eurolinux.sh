@@ -378,6 +378,13 @@ EOF
 }
 
 register_to_euroman() {
+  # EuroLinux earlier than 8 requires a valid EuroMan account. The script
+  # needs to know your account's credentials to register the instance it's
+  # being ran on and migrate it successfully.
+  # Some additional EuroLinux packages will have to be installed for that too
+  # - that's the most important case of using the temporary
+  # switch-to-eurolinux.repo repository. No packages from other vendors can
+  # accomplish this task.
   echo "Registering to EuroMan if applicable..."
   case "$os_version" in
     8*) 
