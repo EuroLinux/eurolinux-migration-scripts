@@ -94,6 +94,15 @@ check_required_packages() {
 }
 
 check_distro() {
+  # Determine the exact Enterprise Linux flavor installed now before a
+  # migration took place. It has to be a one and only one specific match
+  # against our supported distros list.
+  # This function will check an RPM - your /etc/redhat-release provider. No
+  # deep scans such as comparing mentions of other distros in package names,
+  # configuration files, etc. will be checked - it may turn out in some
+  # specific scenarios that distro X had packages branded as distro Y and Z
+  # installed too - but if they are branded, they'll be removed as listed in
+  # the bad_packages array.
   echo "Checking your distribution..."
   if ! old_release=$(rpm -q --whatprovides /etc/redhat-release); then
       exit_message "You appear to be running an unsupported distribution."
