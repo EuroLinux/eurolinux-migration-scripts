@@ -60,6 +60,9 @@ exit_message() {
 }
 
 final_failure() {
+  # A generalized exit message that will appear in case of a disastrous event.
+  # Wrapped as a function since it will be used several times along with
+  # `trap` on critical operations that are not easily revertible.
   exit_message "An error occurred while attempting to switch this system to EuroLinux and it may be in an unstable/unbootable state. To avoid further issues, the script has terminated."
 }
 
