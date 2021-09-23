@@ -174,6 +174,15 @@ check_yum_lock() {
 }
 
 check_systemwide_python() {
+  # This script has an embedded Python code for several operations that are
+  # expressed better that way rather than via a shell. It will need a Python
+  # interpreter. This check ensures the proper locations and version of the
+  # interpreter (the exact invocations will be used later in the script).
+  # Once the embedded Python code is present, it's written for that exact
+  # system-wide interpreter and integrated with other system-wide components -
+  # no incompatibilities as long as the system has the tools installed from
+  # its official repositories and no unofficial tweaks have been made (e.g.
+  # replacing a system-wide Python 2 with 3).
   echo "Checking for required python packages..."
   case "$os_version" in
     8*)
