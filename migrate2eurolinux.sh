@@ -47,6 +47,8 @@ dep_check() {
 }
 
 exit_message() {
+  # Wrap a generic message about a script error with EuroLinux' GitHub URL and
+  # exit.
   echo "$1"
   echo "For assistance, please open an issue via GitHub: ${github_url}."
   exit 1
