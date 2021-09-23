@@ -317,6 +317,13 @@ get_yumdownloader() {
 }
 
 create_temp_el_repo() {
+  # Before the installation of our package that provides .repo files, we need
+  # an information on where to get that and other EuroLinux packages from,
+  # that are mandatory for some of the first steps before a full migration
+  # (e.g.  registering to EuroMan). A temporary repository that provides these
+  # packages is created here and removed later after a migration succeeds.
+  # There's no need to worry about the repositories' names - even if they
+  # change in future releases, the URLs will stay the same.
   cd "$reposdir"
   echo "Creating a temporary repo file for migration..."
   case "$os_version" in
