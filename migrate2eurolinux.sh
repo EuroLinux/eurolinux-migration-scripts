@@ -662,6 +662,8 @@ reinstall_all_rpms() {
 }
 
 update_grub() {
+  # Cover all distros and versions bootloader entries.
+  # TODO: more EFI entries?
   case "$os_version" in
     7* | 8*)
       echo "Updating the GRUB2 bootloader."
