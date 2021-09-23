@@ -552,6 +552,10 @@ swap_rpms() {
 }
 
 reinstall_all_rpms() {
+  # A safety measure - all packages will be reinstalled and then compared if
+  # they belong to EuroLinux or not. If not, this might not be a problem at
+  # all - it depends if they are from other vendors you migrated from or third
+  # party repositories such as EPEL.
   echo "Reinstalling all RPMs..."
   yum reinstall -y \*
   mapfile -t non_eurolinux_rpms < <(rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}|%{VENDOR}|%{PACKAGER}\n" |grep -Ev 'EuroLinux|Scientific') # Several packages are branded as from Scientific Linux and that's the expected behavior
