@@ -141,6 +141,9 @@ check_supported_releases() {
 }
 
 prepare_pre_migration_environment() {
+  # Determine the exact details a distro exposes to perform a migration
+  # successfully - some distros and their releases will need different
+  # approaches and tweaks. Store these details for later use.
   os_version=$(rpm -q "${old_release}" --qf "%{version}")
   major_os_version=${os_version:0:1}
   base_packages=(basesystem initscripts el-logos)
