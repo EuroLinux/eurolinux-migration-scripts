@@ -708,6 +708,7 @@ congratulations() {
 }
 
 main() {
+  # All function calls.
   warning_message
   check_root
   beginning_preparations
