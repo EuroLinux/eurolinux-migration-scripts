@@ -582,6 +582,8 @@ el_distro_sync() {
 }
 
 debrand_modules() {
+  # Use the previously acquired array of known modules to switch them to
+  # EuroLinux-branded ones.
   case "$os_version" in
     8*)
       # There are a few dnf modules that are named after the distribution
@@ -598,6 +600,9 @@ debrand_modules() {
             ;;
           esac
         done
+        # EuroLinux 8 repositories are named with 'certify-' prefix for a
+        # purpose - this is the case of a simple matching that works with this
+        # naming convention.
         dnf --assumeyes --disablerepo "*" --enablerepo "certify*" update
       fi
       ;;
