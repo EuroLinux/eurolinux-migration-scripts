@@ -161,6 +161,7 @@ prepare_pre_migration_environment() {
 }
 
 check_yum_lock() {
+  # Don't attempt to modify packages if there's an ongoing transaction.
   echo "Checking for yum lock..."
   if [ -f /var/run/yum.pid ]; then
     yum_lock_pid=$(cat /var/run/yum.pid)
