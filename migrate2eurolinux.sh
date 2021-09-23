@@ -587,6 +587,7 @@ update_grub() {
 }
 
 remove_cache() {
+  # Remove all temporary files and tweaks used during the migration process.
   echo "Removing yum cache..."
   rm -rf /var/cache/{yum,dnf}
   echo "Removing temporary repo..."
