@@ -451,6 +451,13 @@ get_el_release() {
 }
 
 fix_oracle_shenanigans() {
+  # Several packages in Oracle Linux have a different naming convention. These
+  # are incompatible with other Enterprise Linuxes and treated as newer
+  # versions by package managers. For a migration we need to 'downgrade' them
+  # to EuroLinux equivalents once EuroLinux repositories have been added.
+  #
+  # Some Oracle Linux exclusive packages with no equivalents will be removed
+  # as well.
   if [[ "$(rpm -qa 'oraclelinux-release-el7*')" ]]; then
     yum downgrade -y $(for suffixable in $(rpm -qa | egrep "\.0\.[1-9]\.el7") ; do rpm -q $suffixable --qf '%{NAME}\n' ; done)
     yum downgrade -y $(rpm -qa --qf '%{NAME}:%{VENDOR}\n' | grep -i oracle | cut -d':' -f 1)
