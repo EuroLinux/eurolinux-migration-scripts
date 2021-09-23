@@ -271,6 +271,7 @@ for dir in yum.YumBase().doConfigSetup(init_plugins=False).reposdir:
 }
 
 find_enabled_repos() {
+  # Store your package manager's enabled repositories for later use.
   echo "Learning which repositories are enabled..."
   case "$os_version" in
     8*)
