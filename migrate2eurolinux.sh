@@ -204,16 +204,21 @@ switch_module_branding() {
     echo "Identifying dnf modules that are enabled..."
     mapfile -t modules_enabled < <(dnf module list --enabled | grep -E 'ol8?\ \[' | awk '{print $1}')
     if [[ "${modules_enabled[*]}" ]]; then
+      # Create an array of modules we don't know how to manage
       unknown_modules=()
       for module in "${modules_enabled[@]}"; do
         case ${module} in
           container-tools|go-toolset|jmc|llvm-toolset|rust-toolset|virt)
             ;;
           *)
+            # Add this module name to our array of modules we don't know how
+            # to manage
             unknown_modules+=("${module}")
             ;;
         esac
       done
+      # If we have any modules we don't know how to manage, ask the user how
+      # to proceed
       if [ ${#unknown_modules[@]} -gt 0 ]; then
         echo "This tool is unable to automatically switch module(s) '${unknown_modules[*]}' from an Oracle 'ol' stream to
 an EuroLinux equivalent. Do you want to continue and resolve it manually?
