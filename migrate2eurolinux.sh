@@ -549,6 +549,10 @@ fix_oracle_shenanigans() {
 }
 
 install_el_base() {
+  # Remove packages from other Enterprise Linux distros and install ours. It's
+  # vital that this be performed in one go such as with `yum shell` so the
+  # important dependencies are replaced with ours rather than failing to be
+  # removed by a package manager.
   echo "Installing base packages for EuroLinux..."
   if ! yum shell -y <<EOF
   remove ${bad_packages[@]}
