@@ -432,6 +432,9 @@ EOF
 }
 
 remove_centos_yum_branding() {
+  # CentOS provides their branding in /etc/yum.conf. As of 2021.09.03 no other
+  # distro appears to do the same but if this changes, equivalent branding
+  # removals will be provided here.
   echo "Removing CentOS-specific yum configuration from /etc/yum.conf if applicable..."
   sed -i.bak -e 's/^distroverpkg/#&/g' -e 's/^bugtracker_url/#&/g' /etc/yum.conf
 }
