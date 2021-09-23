@@ -30,6 +30,8 @@ usage() {
 }
 
 warning_message() {
+  # Display a warning message about backups unless running non-interactively
+  # (assumed default behavior).
   if [ "$skip_warning" != "true" ]; then
     echo "This script will migrate your existing Enterprise Linux system to EuroLinux. Extra precautions have been arranged but there's always the risk of something going wrong in the process and users are always recommended to make a backup."
     echo "Do you want to continue? Type YES in uppercase if that's the case."
