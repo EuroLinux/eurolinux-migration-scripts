@@ -299,6 +299,8 @@ for repo in base.repos.listEnabled():
 }
 
 grab_gpg_keys() {
+  # Get EuroLinux public GPG keys; store them in a predefined location before
+  # adding any repositories.
   echo "Grabbing EuroLinux GPG keys..."
   case "$os_version" in
     7* | 8*)
