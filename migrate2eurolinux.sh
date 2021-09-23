@@ -240,6 +240,7 @@ You may want select No to stop and raise an issue on ${github_url} for advice."
 }
 
 find_repos_directory() {
+  # Store your package manager's repositories directory for later use.
   echo "Finding your repository directory..."
   case "$os_version" in
     8*)
