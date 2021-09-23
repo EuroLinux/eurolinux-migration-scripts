@@ -442,6 +442,19 @@ print(my_org)
 }
 
 disable_distro_repos() {
+  # Different distros provide their repositories in different ways. There may
+  # be some additional .repo files that are covered by distro X but not by
+  # distro Y. The files may be provided by different packages rather than a
+  # <distro>-release RPM. This function will take care of all these
+  # inconsistencies to disable all the distro-specific repositories.
+  # This is the case mentioned in check_supported_releases() comments about
+  # overriding the old_release variable because of different .repo files'
+  # provider for certain distros.
+  # The procedure may be simplified but not replaced by using a '*.repo' glob 
+  # since there may be some third-party repositories that should not be
+  # disabled such as EPEL - only take care of another Enterprise Linux
+  # repositories.
+
   cd "$reposdir"
 
   cd "$(mktemp -d)"
