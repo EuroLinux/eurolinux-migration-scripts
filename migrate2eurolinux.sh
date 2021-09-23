@@ -611,6 +611,9 @@ debrand_modules() {
 }
 
 swap_rpms() {
+  # Some RPMs are either not covered by 'replaces' metadata or couldn't be
+  # replaced earlier. This function takes care of all of them.
+  # TODO: rewrite all of this or it's gonna get even more ugly over time.
   case "$os_version" in
     8*)
       if [[ "$(rpm -qa '*-release' | grep -v 'el-release')" ]]; then
