@@ -149,7 +149,6 @@ prepare_pre_migration_environment() {
   base_packages=(basesystem initscripts el-logos)
   case "$os_version" in
     7* | 8*)
-      new_releases=(el-release)
       base_packages=("${base_packages[@]}" plymouth grub2 grubby)
       ;;
     *) exit_message "You appear to be running an unsupported OS version: ${os_version}." ;;
@@ -308,14 +307,6 @@ grab_gpg_keys() {
       ;;
     *) exit_message "You appear to be running an unsupported OS version: ${os_version}." ;;
   esac
-}
-
-get_yumdownloader() {
-  echo "Looking for yumdownloader..."
-  if ! command -v yumdownloader; then
-  yum -y install yum-utils || true
-  dep_check yumdownloader
-  fi
 }
 
 create_temp_el_repo() {
@@ -521,20 +512,6 @@ remove_centos_yum_branding() {
   sed -i.bak -e 's/^distroverpkg/#&/g' -e 's/^bugtracker_url/#&/g' /etc/yum.conf
 }
 
-get_el_release() {
-  echo "Downloading EuroLinux release package..."
-  if ! yumdownloader "${new_releases[@]}"; then
-    {
-      echo "Could not download the following packages:"
-      echo "${new_releases[@]}"
-      echo
-      echo "Are you behind a proxy? If so, make sure the 'http_proxy' environment"
-      echo "variable is set with your proxy address."
-    }
-    final_failure
-  fi
-}
-
 fix_oracle_shenanigans() {
   # Several packages in Oracle Linux have a different naming convention. These
   # are incompatible with other Enterprise Linuxes and treated as newer
@@ -725,12 +702,10 @@ main() {
   find_repos_directory
   find_enabled_repos
   grab_gpg_keys
-  get_yumdownloader
   create_temp_el_repo
   register_to_euroman
   disable_distro_repos
   remove_centos_yum_branding
-  get_el_release
   install_el_base
   update_initrd
   el_distro_sync
