@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash -x
 # Initially based on Oracle's centos2ol script. Thus licensed under the Universal Permissive License v1.0
 # Copyright (c) 2020, 2021 Oracle and/or its affiliates.
 # Copyright (c) 2021 EuroLinux
@@ -13,7 +13,7 @@ beginning_preparations() {
   # These are all the packages we need to remove. Some may not reside in
   # this array since they'll be swapped later on once EuroLinux
   # repositories have been added.
-  bad_packages=(almalinux-backgrounds almalinux-backgrounds-extras almalinux-indexhtml almalinux-logos almalinux-release almalinux-release-opennebula-addons centos-backgrounds centos-gpg-keys centos-indexhtml centos-linux-release centos-linux-repos centos-logos centos-release centos-release-advanced-virtualization centos-release-ansible26 centos-release-ansible-27 centos-release-ansible-28 centos-release-ansible-29 centos-release-azure centos-release-ceph-jewel centos-release-ceph-luminous centos-release-ceph-nautilus centos-release-ceph-octopus centos-release-configmanagement centos-release-cr centos-release-dotnet centos-release-fdio centos-release-gluster40 centos-release-gluster41 centos-release-gluster5 centos-release-gluster6 centos-release-gluster7 centos-release-gluster8 centos-release-gluster-legacy centos-release-messaging centos-release-nfs-ganesha28 centos-release-nfs-ganesha30 centos-release-nfv-common centos-release-nfv-openvswitch centos-release-openshift-origin centos-release-openstack-queens centos-release-openstack-rocky centos-release-openstack-stein centos-release-openstack-train centos-release-openstack-ussuri centos-release-opstools centos-release-ovirt42 centos-release-ovirt43 centos-release-ovirt44 centos-release-paas-common centos-release-qemu-ev centos-release-qpid-proton centos-release-rabbitmq-38 centos-release-samba411 centos-release-samba412 centos-release-scl centos-release-scl-rh centos-release-storage-common centos-release-virt-common centos-release-xen centos-release-xen-410 centos-release-xen-412 centos-release-xen-46 centos-release-xen-48 centos-release-xen-common desktop-backgrounds-basic insights-client libreport-centos libreport-plugin-mantisbt libreport-plugin-rhtsupport libreport-rhel libreport-rhel-anaconda-bugzilla libreport-rhel-bugzilla libzstd oracle-backgrounds oracle-epel-release-el8 oracle-indexhtml oraclelinux-release oraclelinux-release-el7 oraclelinux-release-el8 oracle-logos python3-syspurpose python-oauth redhat-backgrounds Red_Hat_Enterprise_Linux-Release_Notes-7-en-US redhat-indexhtml redhat-logos redhat-release redhat-release-eula redhat-release-server redhat-support-lib-python redhat-support-tool rocky-backgrounds rocky-gpg-keys rocky-indexhtml rocky-logos rocky-obsolete-packages rocky-release rocky-repos sl-logos uname26 yum-conf-extras yum-conf-repos)
+  bad_packages=(almalinux-backgrounds almalinux-backgrounds-extras almalinux-indexhtml almalinux-logos almalinux-release almalinux-release-opennebula-addons bcache-tools btrfs-progs centos-backgrounds centos-gpg-keys centos-indexhtml centos-linux-release centos-linux-repos centos-logos centos-release centos-release-advanced-virtualization centos-release-ansible26 centos-release-ansible-27 centos-release-ansible-28 centos-release-ansible-29 centos-release-azure centos-release-ceph-jewel centos-release-ceph-luminous centos-release-ceph-nautilus centos-release-ceph-octopus centos-release-configmanagement centos-release-cr centos-release-dotnet centos-release-fdio centos-release-gluster40 centos-release-gluster41 centos-release-gluster5 centos-release-gluster6 centos-release-gluster7 centos-release-gluster8 centos-release-gluster-legacy centos-release-messaging centos-release-nfs-ganesha28 centos-release-nfs-ganesha30 centos-release-nfv-common centos-release-nfv-openvswitch centos-release-openshift-origin centos-release-openstack-queens centos-release-openstack-rocky centos-release-openstack-stein centos-release-openstack-train centos-release-openstack-ussuri centos-release-opstools centos-release-ovirt42 centos-release-ovirt43 centos-release-ovirt44 centos-release-paas-common centos-release-qemu-ev centos-release-qpid-proton centos-release-rabbitmq-38 centos-release-samba411 centos-release-samba412 centos-release-scl centos-release-scl-rh centos-release-storage-common centos-release-virt-common centos-release-xen centos-release-xen-410 centos-release-xen-412 centos-release-xen-46 centos-release-xen-48 centos-release-xen-common desktop-backgrounds-basic insights-client libreport-centos libreport-plugin-mantisbt libreport-plugin-rhtsupport libreport-rhel libreport-rhel-anaconda-bugzilla libreport-rhel-bugzilla libzstd oracle-backgrounds oracle-epel-release-el8 oracle-indexhtml oraclelinux-release oraclelinux-release-el7 oraclelinux-release-el8 oracle-logos python3-dnf-plugin-ulninfo python3-syspurpose python-oauth redhat-backgrounds Red_Hat_Enterprise_Linux-Release_Notes-7-en-US redhat-indexhtml redhat-logos redhat-release redhat-release-eula redhat-release-server redhat-support-lib-python redhat-support-tool rocky-backgrounds rocky-gpg-keys rocky-indexhtml rocky-logos rocky-obsolete-packages rocky-release rocky-repos sl-logos uname26 yum-conf-extras yum-conf-repos)
 }
 
 usage() {
@@ -518,12 +518,19 @@ fix_oracle_shenanigans() {
   #
   # Some Oracle Linux exclusive packages with no equivalents will be removed
   # as well.
-  if [[ "$(rpm -qa 'oraclelinux-release-el7*')" ]]; then
+  if [[ "$(rpm -qa 'oraclelinux-release-el*')" ]]; then
     rpm -e --nodeps $(rpm -qa | grep "oracle")
     yum downgrade -y yum
-    yum downgrade -y $(for suffixable in $(rpm -qa | egrep "\.0\.[1-9]\.el7") ; do rpm -q $suffixable --qf '%{NAME}\n' ; done)
-    unlink /etc/os-release
-    yum remove -y uname26 libzstd
+    yum downgrade -y $(for suffixable in $(rpm -qa | egrep "\.0\.[1-9]\.el") ; do rpm -q $suffixable --qf '%{NAME}\n' ; done)
+    unlink /etc/os-release || true
+    case "$os_version" in
+      8*)
+        yum remove -y bcache-tools btrfs-progs python3-dnf-plugin-ulninfo 
+        ;;
+      7*)
+        yum remove -y libzstd uname26
+        ;;
+      esac
   fi
 }
 
@@ -593,19 +600,6 @@ swap_rpms() {
   # Some RPMs are either not covered by 'replaces' metadata or couldn't be
   # replaced earlier. This function takes care of all of them.
   # TODO: rewrite all of this or it's gonna get even more ugly over time.
-  case "$os_version" in
-    8*)
-      if [[ "$(rpm -qa '*-release' | grep -v 'el-release')" ]]; then
-        yum swap -y "*-release" "el-release"
-      fi
-
-      if [[ "$(rpm -qa '*-logos' | grep -v 'el-logos')" ]]; then
-        yum swap -y "*-logos" "el-logos"
-      fi
-      ;;
-    *) : ;;
-  esac
-
   if [[ "$(rpm -qa '*-logos-ipa')" ]]; then
     yum swap -y "*-logos-ipa" "el-logos-ipa"
   fi
