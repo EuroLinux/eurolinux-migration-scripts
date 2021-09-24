@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash 
 # Initially based on Oracle's centos2ol script. Thus licensed under the Universal Permissive License v1.0
 # Copyright (c) 2020, 2021 Oracle and/or its affiliates.
 # Copyright (c) 2021 EuroLinux
@@ -520,8 +520,10 @@ fix_oracle_shenanigans() {
   # Some Oracle Linux exclusive packages with no equivalents will be removed
   # as well.
   if [[ "$(rpm -qa 'oraclelinux-release-el7*')" ]]; then
+    rpm -e --nodeps $(rpm -qa | grep "oracle")
+    yum downgrade -y yum
     yum downgrade -y $(for suffixable in $(rpm -qa | egrep "\.0\.[1-9]\.el7") ; do rpm -q $suffixable --qf '%{NAME}\n' ; done)
-    yum downgrade -y $(rpm -qa --qf '%{NAME}:%{VENDOR}\n' | grep -i oracle | cut -d':' -f 1)
+    unlink /etc/os-release
     yum remove -y uname26 libzstd
   fi
 }
@@ -599,15 +601,6 @@ swap_rpms() {
       fi
 
       if [[ "$(rpm -qa '*-logos' | grep -v 'el-logos')" ]]; then
-        yum swap -y "*-logos" "el-logos"
-      fi
-      ;;
-    7*)
-      if [[ "$(rpm -qa '*-release')" ]] && [[ ! "$(rpm -qa 'oraclelinux-release-el7*')" ]]; then
-        yum swap -y "*-release" "el-release"
-      fi
-
-      if [[ "$(rpm -qa '*-logos')" ]]; then
         yum swap -y "*-logos" "el-logos"
       fi
       ;;
@@ -704,6 +697,7 @@ main() {
   create_temp_el_repo
   register_to_euroman
   disable_distro_repos
+  fix_oracle_shenanigans
   remove_centos_yum_branding
   install_el_base
   update_initrd
@@ -711,7 +705,6 @@ main() {
   debrand_modules
   swap_rpms
   reinstall_all_rpms
-  fix_oracle_shenanigans
   update_grub
   remove_cache
   verify_generated_rpms_info
