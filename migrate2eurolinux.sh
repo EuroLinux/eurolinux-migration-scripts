@@ -37,7 +37,7 @@ warning_message() {
     echo "Do you want to continue? Type 'YES' if that's the case."
     read answer
     if [[ ! "$answer" =~ ^[Yy][Ee][Ss]$ ]]; then
-      exit_message "Confirmation denied since an answear other than 'YES' was provided, exiting."
+      exit_message "Confirmation denied since an answer other than 'YES' was provided, exiting."
     fi
   fi
 }
@@ -70,9 +70,9 @@ generate_rpms_info() {
   # Generate an RPM database log and a list of RPMs installed on your system
   # at any point in time.
   # $1 - before/after (a migration)
-  echo "Creating a list of RPMs installed $1 the switch"
+  echo "Creating a list of RPMs installed $1 the switch..."
   rpm -qa --qf "%{NAME}-%{EPOCH}:%{VERSION}-%{RELEASE}.%{ARCH}|%{INSTALLTIME}|%{VENDOR}|%{BUILDTIME}|%{BUILDHOST}|%{SOURCERPM}|%{LICENSE}|%{PACKAGER}\n" | sed 's/(none)://g' | sort > "/var/tmp/$(hostname)-rpms-list-$1.log"
-  echo "Verifying RPMs installed $1 the switch against RPM database"
+  echo "Verifying RPMs installed $1 the switch against RPM database..."
   rpm -Va | sort -k3 > "/var/tmp/$(hostname)-rpms-verified-$1.log"
 }
 
@@ -81,13 +81,12 @@ check_root() {
   # refer to the way described in README.md - just switch to the root account
   # and run with `bash migrate2eurolinux.sh`
   if [ "$(id -u)" -ne 0 ]; then
-      exit_message "You must run this script as root.
-  Try running 'su -c ${0}'."
+      exit_message "You must run this script as root."
   fi
 }
 
 check_required_packages() {
-  echo "Checking for required packages..."
+  echo "Checking if the systems has the required packages installed..."
   for pkg in rpm yum curl; do
       dep_check "${pkg}"
   done
@@ -182,7 +181,7 @@ check_systemwide_python() {
   # no incompatibilities as long as the system has the tools installed from
   # its official repositories and no unofficial tweaks have been made (e.g.
   # replacing a system-wide Python 2 with 3).
-  echo "Checking for required python packages..."
+  echo "Checking for required Python packages..."
   case "$os_version" in
     8*)
       dep_check /usr/libexec/platform-python
@@ -637,7 +636,7 @@ update_grub() {
   # TODO: more EFI entries?
   case "$os_version" in
     7* | 8*)
-      echo "Updating the GRUB2 bootloader."
+      echo "Updating the GRUB2 bootloader..."
       if [ -d /sys/firmware/efi ]; then
         if [ -d /boot/efi/EFI/almalinux ]; then
           grub2-mkconfig -o /boot/efi/EFI/almalinux/grub.cfg
