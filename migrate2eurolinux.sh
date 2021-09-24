@@ -146,7 +146,7 @@ prepare_pre_migration_environment() {
   # approaches and tweaks. Store these details for later use.
   os_version=$(rpm -q "${old_release}" --qf "%{version}")
   major_os_version=${os_version:0:1}
-  base_packages=(basesystem initscripts el-logos)
+  base_packages=(basesystem initscripts el-logos el-release)
   case "$os_version" in
     7* | 8*)
       base_packages=("${base_packages[@]}" plymouth grub2 grubby)
@@ -389,7 +389,7 @@ register_to_euroman() {
       fi
       if [ -z ${el_euroman_password+x} ]; then
         echo "Please provide your EuroMan password: "
-        read el_euroman_password
+        read -s el_euroman_password
       fi
       echo "Installing EuroMan-related tools..."
       yum install -y python-hwdata rhn-client-tools rhn-check yum-rhn-plugin yum-utils rhnlib rhn-setup rhnsd
