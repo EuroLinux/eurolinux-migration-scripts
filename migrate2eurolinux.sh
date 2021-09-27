@@ -13,7 +13,7 @@ beginning_preparations() {
   # These are all the packages we need to remove. Some may not reside in
   # this array since they'll be swapped later on once EuroLinux
   # repositories have been added.
-  bad_packages=(almalinux-backgrounds almalinux-backgrounds-extras almalinux-indexhtml almalinux-logos almalinux-release almalinux-release-opennebula-addons bcache-tools btrfs-progs centos-backgrounds centos-gpg-keys centos-indexhtml centos-linux-release centos-linux-repos centos-logos centos-release centos-release-advanced-virtualization centos-release-ansible26 centos-release-ansible-27 centos-release-ansible-28 centos-release-ansible-29 centos-release-azure centos-release-ceph-jewel centos-release-ceph-luminous centos-release-ceph-nautilus centos-release-ceph-octopus centos-release-configmanagement centos-release-cr centos-release-dotnet centos-release-fdio centos-release-gluster40 centos-release-gluster41 centos-release-gluster5 centos-release-gluster6 centos-release-gluster7 centos-release-gluster8 centos-release-gluster-legacy centos-release-messaging centos-release-nfs-ganesha28 centos-release-nfs-ganesha30 centos-release-nfv-common centos-release-nfv-openvswitch centos-release-openshift-origin centos-release-openstack-queens centos-release-openstack-rocky centos-release-openstack-stein centos-release-openstack-train centos-release-openstack-ussuri centos-release-opstools centos-release-ovirt42 centos-release-ovirt43 centos-release-ovirt44 centos-release-paas-common centos-release-qemu-ev centos-release-qpid-proton centos-release-rabbitmq-38 centos-release-samba411 centos-release-samba412 centos-release-scl centos-release-scl-rh centos-release-storage-common centos-release-virt-common centos-release-xen centos-release-xen-410 centos-release-xen-412 centos-release-xen-46 centos-release-xen-48 centos-release-xen-common desktop-backgrounds-basic insights-client libreport-centos libreport-plugin-mantisbt libreport-plugin-rhtsupport libreport-rhel libreport-rhel-anaconda-bugzilla libreport-rhel-bugzilla libzstd oracle-backgrounds oracle-epel-release-el8 oracle-indexhtml oraclelinux-release oraclelinux-release-el7 oraclelinux-release-el8 oracle-logos python3-dnf-plugin-ulninfo python3-syspurpose python-oauth redhat-backgrounds Red_Hat_Enterprise_Linux-Release_Notes-7-en-US redhat-indexhtml redhat-logos redhat-release redhat-release-eula redhat-release-server redhat-support-lib-python redhat-support-tool rocky-backgrounds rocky-gpg-keys rocky-indexhtml rocky-logos rocky-obsolete-packages rocky-release rocky-repos sl-logos uname26 yum-conf-extras yum-conf-repos)
+  bad_packages=(almalinux-backgrounds almalinux-backgrounds-extras almalinux-indexhtml almalinux-logos almalinux-release almalinux-release-opennebula-addons bcache-tools btrfs-progs centos-backgrounds centos-gpg-keys centos-indexhtml centos-linux-release centos-linux-repos centos-logos centos-release centos-release-advanced-virtualization centos-release-ansible26 centos-release-ansible-27 centos-release-ansible-28 centos-release-ansible-29 centos-release-azure centos-release-ceph-jewel centos-release-ceph-luminous centos-release-ceph-nautilus centos-release-ceph-octopus centos-release-configmanagement centos-release-cr centos-release-dotnet centos-release-fdio centos-release-gluster40 centos-release-gluster41 centos-release-gluster5 centos-release-gluster6 centos-release-gluster7 centos-release-gluster8 centos-release-gluster-legacy centos-release-messaging centos-release-nfs-ganesha28 centos-release-nfs-ganesha30 centos-release-nfv-common centos-release-nfv-openvswitch centos-release-openshift-origin centos-release-openstack-queens centos-release-openstack-rocky centos-release-openstack-stein centos-release-openstack-train centos-release-openstack-ussuri centos-release-opstools centos-release-ovirt42 centos-release-ovirt43 centos-release-ovirt44 centos-release-paas-common centos-release-qemu-ev centos-release-qpid-proton centos-release-rabbitmq-38 centos-release-samba411 centos-release-samba412 centos-release-scl centos-release-scl-rh centos-release-storage-common centos-release-virt-common centos-release-xen centos-release-xen-410 centos-release-xen-412 centos-release-xen-46 centos-release-xen-48 centos-release-xen-common desktop-backgrounds-basic insights-client libreport-centos libreport-plugin-mantisbt libreport-plugin-rhtsupport libreport-rhel libreport-rhel-anaconda-bugzilla libreport-rhel-bugzilla oracle-backgrounds oracle-epel-release-el8 oracle-indexhtml oraclelinux-release oraclelinux-release-el7 oraclelinux-release-el8 oracle-logos python3-dnf-plugin-ulninfo python3-syspurpose python-oauth redhat-backgrounds Red_Hat_Enterprise_Linux-Release_Notes-7-en-US redhat-indexhtml redhat-logos redhat-release redhat-release-eula redhat-release-server redhat-support-lib-python redhat-support-tool rocky-backgrounds rocky-gpg-keys rocky-indexhtml rocky-logos rocky-obsolete-packages rocky-release rocky-repos sl-logos uname26 yum-conf-extras yum-conf-repos)
 }
 
 usage() {
@@ -528,10 +528,33 @@ fix_oracle_shenanigans() {
         yum remove -y bcache-tools btrfs-progs python3-dnf-plugin-ulninfo 
         ;;
       7*)
-        yum remove -y libzstd uname26
+        yum remove -y uname26
+        yum downgrade -y qemu-guest-agent
         ;;
       esac
   fi
+}
+
+force_el_release() {
+  # Get yumdownloader if applicable and force and installation of el-release,
+  # removing the current release provider package.
+  if ! command -v yumdownloader; then
+    case "$os_version" in
+        8*)
+          : # Already provided my dnf, skipping
+          dnf download el-release
+          ;;
+        7*)
+          echo "Looking for yymdownloader..."
+          yum -y install yum-utils
+          yum download el-release
+          dep_check yumdownloader
+          ;;
+        *) : ;;
+    esac
+    for i in ${bad_packages[@]} ; do rpm -e --nodeps $i || true ; done
+    rpm -i --force el-release*
+fi
 }
 
 install_el_base() {
@@ -591,6 +614,9 @@ debrand_modules() {
         # naming convention.
         dnf --assumeyes --disablerepo "*" --enablerepo "certify*" update
       fi
+      # A necessary downgrade to the version from our repos since the 'virt'
+      # module gets installed in this stage.
+      dnf downgrade -y qemu-guest-agent
       ;;
     *) : ;;
   esac
@@ -607,6 +633,11 @@ swap_rpms() {
   if [[ "$(rpm -qa '*-logos-httpd')" ]]; then
     yum swap -y "*-logos-httpd" "el-logos-httpd"
   fi
+}
+
+remove_problematic_libzstd() {
+  # Required during the migration process
+  yum remove -y libzstd || true
 }
 
 reinstall_all_rpms() {
@@ -646,7 +677,7 @@ update_grub() {
   esac
 }
 
-remove_cache() {
+remove_leftovers() {
   # Remove all temporary files and tweaks used during the migration process.
   echo "Removing yum cache..."
   rm -rf /var/cache/{yum,dnf}
@@ -692,14 +723,16 @@ main() {
   disable_distro_repos
   fix_oracle_shenanigans
   remove_centos_yum_branding
+  force_el_release
   install_el_base
   update_initrd
   el_distro_sync
   debrand_modules
   swap_rpms
+  remove_problematic_libzstd
   reinstall_all_rpms
   update_grub
-  remove_cache
+  remove_leftovers
   verify_generated_rpms_info
   congratulations
 }
