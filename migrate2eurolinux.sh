@@ -614,18 +614,14 @@ debrand_modules() {
         # naming convention.
         dnf --assumeyes --disablerepo "*" --enablerepo "certify*" update
       fi
-      # A necessary downgrade to the version from our repos since the 'virt'
-      # module gets installed in this stage.
-      dnf downgrade -y qemu-guest-agent
       ;;
     *) : ;;
   esac
 }
 
-swap_rpms() {
+deal_with_problematic_rpms() {
   # Some RPMs are either not covered by 'replaces' metadata or couldn't be
-  # replaced earlier. This function takes care of all of them.
-  # TODO: rewrite all of this or it's gonna get even more ugly over time.
+  # replaced earlier. This part takes care of all of them.
   if [[ "$(rpm -qa '*-logos-ipa')" ]]; then
     yum swap -y "*-logos-ipa" "el-logos-ipa"
   fi
@@ -633,11 +629,18 @@ swap_rpms() {
   if [[ "$(rpm -qa '*-logos-httpd')" ]]; then
     yum swap -y "*-logos-httpd" "el-logos-httpd"
   fi
-}
 
-remove_problematic_libzstd() {
-  # Required during the migration process
+  # libzstd - required during the migration process, can be removed now
   yum remove -y libzstd || true
+
+  # A necessary downgrade to the version from our repos since the 'virt'
+  # module gets installed when debranding Oracle Linux modules
+  case "$os_version" in
+    8*)
+      dnf downgrade -y qemu-guest-agent || true
+      ;;
+    *) : ;;
+  esac
 }
 
 reinstall_all_rpms() {
@@ -728,8 +731,7 @@ main() {
   update_initrd
   el_distro_sync
   debrand_modules
-  swap_rpms
-  remove_problematic_libzstd
+  deal_with_problematic_rpms
   reinstall_all_rpms
   update_grub
   remove_leftovers
