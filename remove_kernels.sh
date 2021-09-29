@@ -6,6 +6,9 @@
 # the algorithm:
 # if there is  `el-release` and EuroLinux kernels are available ; then
 #   use grubby to change to EuroLinux kernel as the default one
+#   determine what to do with other kernels (those that the old distro provided
+#     and other non-EuroLinux ones, e.g. from ELRepo) - either ask the user or
+#     realize with parameters
 #   systemctl enable "remove-non-eurolinux-kernels-on-next-boot.service"
 #   systemd takes care of a reboot (so EuroLinux kernel will be in use),
 #     removing the non-EuroLinux kernels and rebooting again for safety.
