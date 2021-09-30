@@ -27,8 +27,9 @@ check_successful_migration() {
 el-release."
   fi
 
-  mapfile -t installed_kernel_packages < <(rpm -qa --qf '%{NAME}-%{VERSION}-%{RELEASE}.%{ARCH}|%{VENDOR}|%{PACKAGER}\n' kernel{,-uek} | sed 's@\ @\_@g')
-  if [ ! "$(printf -- '%s\n' \"${installed_kernel_packages[@]}\" | grep -E 'EuroLinux|Scientific')" ]; then
+  mapfile -t installed_kernel_packages < <(rpm -qa --qf '%{NAME}-%{VERSION}-%{RELEASE}.%{ARCH}|%{VENDOR}|%{PACKAGER}\n' kernel* | sed 's@\ @\_@g')
+  latest_eurolinux_kernel_package="$(printf -- '%s\n' "${installed_kernel_packages[@]}" | grep -E 'EuroLinux|Scientific' | grep '^kernel-[0-9]\.[0-9]' | sort -r | head -n 1 | cut -d '|' -f 1)"
+  if [ -z "$latest_eurolinux_kernel_package" ]; then
     exit_message "Could not determine if a migration was successful - could 
 not find a package that provides an EuroLinux kernel."
   fi
@@ -38,7 +39,6 @@ set_latest_eurolinux_kernel() {
   # Determine the EuroLinux-branded kernel that is installed and set it as the
   # default one. The system shall be rebooted soon after and other kernels will
   # be removed only then - this is explained later on as a comment.
-  latest_eurolinux_kernel_package="$(printf -- '%s\n' "${installed_kernel_packages[@]}" | grep -E 'EuroLinux|Scientific' | sort -r | head -n 1 | cut -d '|' -f 1)"
   latest_eurolinux_kernel_path="$(find /boot -name ${latest_eurolinux_kernel_package/kernel/vmlinuz})"
   grubby --set-default="${latest_eurolinux_kernel_path}"
 }
