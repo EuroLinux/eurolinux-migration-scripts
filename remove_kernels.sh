@@ -3,17 +3,6 @@
 # been performed from
 # Copyright (c) 2021 EuroLinux
 
-# the algorithm:
-# if there is  `el-release` and EuroLinux kernels are available ; then
-#   use grubby to change to EuroLinux kernel as the default one
-#   determine what to do with other kernels (those that the old distro provided
-#     and other non-EuroLinux ones, e.g. from ELRepo) - either ask the user or
-#     realize with parameters
-#   systemctl enable "remove-non-eurolinux-kernels-on-next-boot.service"
-#   systemd takes care of a reboot (so EuroLinux kernel will be in use),
-#     removing the non-EuroLinux kernels and rebooting again for safety.
-# fi
-
 beginning_preparations() {
   set -e
   github_url="https://github.com/EuroLinux/eurolinux-migration-scripts"
@@ -85,7 +74,7 @@ prepare_list_of_kernels_to_be_removed() {
   printf -- '%s\n' "${all_non_eurolinux_kernel_packages[@]}"
   echo "---"
   if [ ${#migratable_distros_kernel_packages[@]} -gt 0 ]; then
-    echo "Among which these come from the distributions the script supports migration from:"
+    echo "Among which these come from the systems the script supports migration from:"
     printf -- '%s\n' "${migratable_distros_kernel_packages[@]}"
     echo "---"
   fi
