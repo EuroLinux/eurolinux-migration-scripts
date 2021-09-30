@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash 
 # description: remove kernels and GPG keys from the distro the migration has
 # been performed from
 # Copyright (c) 2021 EuroLinux
@@ -28,20 +28,28 @@ exit_message() {
 }
 
 check_successful_migration() {
+  # Consider a migration successful if the package "el-release" provides
+  # /etc/redhat-release and the package "kernel" is EuroLinux-branded
+
   release_provider="$(rpm -q --whatprovides /etc/redhat-release)"
   if [[ ! "$release_provider" =~ ^el-release ]]; then
     exit_message "Could not determine if a migration was successful -
 /etc/redhat-release is provided by the package \"$release_provider\" rather than 
 el-release."
   fi
-  mapfile -t installed_kernel_packages < <(rpm -qa --qf '%{NAME}-%{VERSION}-%{RELEASE}.%{ARCH}|%{VENDOR}|%{PACKAGER}\n' kernel)
-  if [ ! $(grep -E 'EuroLinux|Scientific' <<< "${installed_kernel_packages[@]}" ) ]; then
-    exit_message "Could not find a package that provides an EuroLinux kernel."
+
+  mapfile -t installed_kernel_packages < <(rpm -qa --qf '%{NAME}-%{VERSION}-%{RELEASE}.%{ARCH}|%{VENDOR}|%{PACKAGER}\n' kernel{,-uek} | sed 's@\ @\_@g')
+  if [ ! "$(printf -- '%s\n' \"${installed_kernel_packages[@]}\" | grep -E 'EuroLinux|Scientific')" ]; then
+    exit_message "Could not determine if a migration was successful - could 
+not find a package that provides an EuroLinux kernel."
   fi
 }
 
 set_latest_eurolinux_kernel() {
-  latest_eurolinux_kernel_package="$(grep -E 'EuroLinux|Scientific' <<< "${installed_kernel_packages[@]}" | sort -r | head -n 1)"
+  # Determine the EuroLinux-branded kernel that is installed and set it as the
+  # default one. The system shall be rebooted soon after and other kernels will
+  # be removed only then - this is explained later on as a comment.
+  latest_eurolinux_kernel_package="$(printf -- '%s\n' "${installed_kernel_packages[@]}" | grep -E 'EuroLinux|Scientific' | sort -r | head -n 1 | cut -d '|' -f 1)"
   latest_eurolinux_kernel_path="$(find /boot -name ${latest_eurolinux_kernel_package/kernel/vmlinuz})"
   grubby --set-default="${latest_eurolinux_kernel_path}"
 }
@@ -69,20 +77,22 @@ prepare_list_of_kernels_to_be_removed() {
   # Consider several scenarios such non-EuroLinux kernels that come from e.g.
   # ELRepo or other sources. What should be done with them is up to the user
   # to decide via an answer or a parameter.
-  mapfile -t all_non_eurolinux_kernel_packages < <(grep -Ev 'EuroLinux|Scientific' <<< "${installed_kernel_packages[@]}")
-  mapfile -t migratable_distros_kernel_packages < <(grep -E 'Red Hat|CentOS|Oracle|Rocky|Alma' <<< ${all_non_eurolinux_kernel_packages[@]})
-  echo "The following non-EuroLinux kernel packages are still remaining:
-${all_non_eurolinux_kernel_packages[@]}
----"
+  mapfile -t all_non_eurolinux_kernel_packages < \
+    <(printf -- '%s\n' "${installed_kernel_packages[@]}" | grep -Ev 'EuroLinux|Scientific' | sed 's@\ @\_@g')
+  mapfile -t migratable_distros_kernel_packages < \
+    <(printf -- '%s\n' ${all_non_eurolinux_kernel_packages[@]} | grep -E 'Red.Hat|CentOS|Oracle|Rocky|Alma' | sed 's@\ @\_@g')
+  echo "The following non-EuroLinux kernel packages are still remaining:"
+  printf -- '%s\n' "${all_non_eurolinux_kernel_packages[@]}"
+  echo "---"
   if [ ${#migratable_distros_kernel_packages[@]} -gt 0 ]; then
-    echo "Among which these come from the distributions the script supports migration from:
-${migratable_distros_kernel_packages[@]}
----"
+    echo "Among which these come from the distributions the script supports migration from:"
+    printf -- '%s\n' "${migratable_distros_kernel_packages[@]}"
+    echo "---"
   fi
 
-  echo "What should the script do:
-1. leave all non-EuroLinux kernel packages as they are
-2. remove all non-EuroLinux kernel packages"
+  echo "What should the script do:"
+  echo "1. leave all non-EuroLinux kernel packages as they are"
+  echo "2. remove all non-EuroLinux kernel packages"
   if [ ${#migratable_distros_kernel_packages[@]} -gt 0 ]; then
     echo "3. remove only the kernel packages that come from migratable distros"
   fi
@@ -94,13 +104,14 @@ ${migratable_distros_kernel_packages[@]}
        echo "Leaving all kernel packages as they are."
        exit 0
        ;;
-    2) echo "${all_non_eurolinux_kernel_packages[@]}" > /root/kernel_packages_to_remove.txt ;;
+    2) printf -- '%s\n' "${all_non_eurolinux_kernel_packages[@]%%|*}" > /root/kernel_packages_to_remove.txt ;;
     3) 
        if [ ${#migratable_distros_kernel_packages[@]} -gt 0 ]; then
-         echo "${migratable_distros_kernel_packages[@]}" > /root/kernel_packages_to_remove.txt ;;
+         printf -- '%s\n' "${migratable_distros_kernel_packages[@]%%|*}" > /root/kernel_packages_to_remove.txt
        else
          exit_message "Unknown answer: $answer."
        fi
+       ;;
     *) exit_message "Unknown answer: $answer."
   esac
 }
@@ -112,9 +123,8 @@ Description=Remove non-EuroLinux kernels
 
 [Service]
 Type=oneshot
-ExecStart=cat /root/kernel_packages_to_remove.txt | xargs yum remove -y  
-ExecStartPost=systemctl disable remove-non-eurolinux-kernels.service
-ExecStartPost=echo "Kernels removed successfully. Please reboot your system."
+ExecStart=/bin/bash -c "cat /root/kernel_packages_to_remove.txt | xargs yum remove -y"
+ExecStartPost=/bin/systemctl disable remove-non-eurolinux-kernels.service
 
 [Install]
 WantedBy=multi-user.target
