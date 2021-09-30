@@ -106,13 +106,15 @@ prepare_list_of_kernels_to_be_removed() {
 }
 
 prepare_systemd_service() {
-  cat > "/etc/systemd/system/remove-non-eurolinux-kernels.service" <<-'EOF'
+  script_location="$(readlink -f $0)"
+  cat > "/etc/systemd/system/remove-non-eurolinux-kernels.service" <<-EOF
 [Unit]
-Description=Remove non-EuroLinux kernels
+Description=Remove non-EuroLinux kernels and kernel-related packages
+SuccessAction=reboot
 
 [Service]
 Type=oneshot
-ExecStart=/bin/bash -c "cat /root/kernel_packages_to_remove.txt | xargs yum remove -y"
+ExecStart=/bin/bash -c "cat /root/kernel_packages_to_remove.txt | xargs yum remove -y && source $script_location && update_grub
 ExecStartPost=/bin/systemctl disable remove-non-eurolinux-kernels.service
 
 [Install]
@@ -121,6 +123,8 @@ EOF
 
   systemctl enable remove-non-eurolinux-kernels.service && \
     echo "Kernel removal will be performed on next system boot."
+    echo "Additionally a GRUB2 update will be performed along with an automatic system reboot"
+    echo "Please don't remove this repository before the operations mentioned above have finished their job."
 }
 
 main() {
