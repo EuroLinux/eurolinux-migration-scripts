@@ -103,9 +103,26 @@ ${migratable_distros_kernel_packages[@]}
        fi
     *) exit_message "Unknown answer: $answer."
   esac
-
 }
 
+prepare_systemd_service() {
+  cat > "/etc/systemd/system/remove-non-eurolinux-kernels.service" <<-'EOF'
+[Unit]
+Description=Remove non-EuroLinux kernels
+
+[Service]
+Type=oneshot
+ExecStart=cat /root/kernel_packages_to_remove.txt | xargs yum remove -y  
+ExecStartPost=systemctl disable remove-non-eurolinux-kernels.service
+ExecStartPost=echo "Kernels removed successfully. Please reboot your system."
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+  systemctl enable remove-non-eurolinux-kernels.service && \
+    echo "Kernel removal will be performed on next system boot."
+}
 
 main() {
   beginning_preparations
@@ -113,6 +130,7 @@ main() {
   set_latest_eurolinux_kernel
   update_grub
   prepare_list_of_kernels_to_be_removed
+  prepare_systemd_service
 }
 
 main
