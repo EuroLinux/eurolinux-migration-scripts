@@ -77,12 +77,6 @@ will remove the specified packages on next system boot, perform a bootloader
 update, disable itself and reboot the machine to ensure no leftovers are
 present.
 
-Make sure that once the *remove_kernels.sh* script has finished successfully,
-the *eurolinux-migration-scripts* directory, from which it ran, is left as-is,
-untouched - the script will be sourced by the service it created and must be
-present in the exact same place until the complete package removal has finished
-its job.
-
 ## Tests
 
 Tests related to proper system functionality have been provided. There's a
