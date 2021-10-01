@@ -1,7 +1,11 @@
 #!/bin/bash 
+# name: remove_kernels.sh
+#
 # description: remove kernels and GPG keys from the distro the migration has
 # been performed from
-# Copyright (c) 2021 EuroLinux
+#
+# Copyright 2021 EuroLinux, Inc.
+# Author: Tomasz Podsiadły <tp@euro-linux.com>
 
 beginning_preparations() {
   set -e
