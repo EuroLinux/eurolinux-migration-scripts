@@ -59,6 +59,30 @@ Or with debug and additional debug messages logging:
 bash -x migrate2eurolinux.sh -f -u 'user@example.com' -p 'password123' | tee -a migration_debug.log
 ```
 
+### Removing distro-provided kernel
+
+Once the script has finished, there will still be a distro-provided kernel
+running and probably some other ones, especially when installed from
+third-party repositories. In order to remove it and related packages such as
+*kernel-devel*, *kernel-headers*, etc. an additional script has been created:
+*remove_kernels.sh*.
+
+The script will run only if it is certain a system has already successfully
+migrated to EuroLinux. Additionally, it will ask the user, if they want to
+remove only the kernels their old distro provided or all non-EuroLinux kernels
+and related packages - those from third-party repositories among others.
+
+Once the answer is present, a systemd service will be created and enabled - it
+will remove the specified packages on next system boot, perform a bootloader
+update, disable itself and reboot the machine to ensure no leftovers are
+present.
+
+Make sure that once the *remove_kernels.sh* script has finished successfully,
+the *eurolinux-migration-scripts* directory, from which it ran, is left as-is,
+untouched - the script will be sourced by the service it created and must be
+present in the exact same place until the complete package removal has finished
+its job.
+
 ## Tests
 
 Tests related to proper system functionality have been provided. There's a
