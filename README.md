@@ -19,6 +19,9 @@ The following distributions are supported on the x86_64 architecture:
 - Rocky Linux 8
 - Scientific Linux 7
 
+The distributions must be up to date and only their latest minor release is
+supported.
+
 ## Preparations
 
 The script covers the basics of several Enterprise Linux installations but it
