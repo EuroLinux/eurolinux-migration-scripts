@@ -519,7 +519,6 @@ fix_oracle_shenanigans() {
         ;;
       7*)
         yum remove -y uname26
-        yum downgrade -y qemu-guest-agent
         ;;
       esac
   fi
