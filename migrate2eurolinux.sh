@@ -145,13 +145,7 @@ prepare_pre_migration_environment() {
   # approaches and tweaks. Store these details for later use.
   os_version=$(rpm -q "${old_release}" --qf "%{version}")
   major_os_version=${os_version:0:1}
-  base_packages=(basesystem initscripts el-logos el-release)
-  case "$os_version" in
-    7* | 8*)
-      base_packages=("${base_packages[@]}" plymouth grub2 grubby)
-      ;;
-    *) exit_message "You appear to be running an unsupported OS version: ${os_version}." ;;
-  esac
+  base_packages=(basesystem el-logos el-release grub2 grubby initscripts plymouth)
   if [[ "$old_release" =~ oraclelinux-release-(el)?[78] ]] ; then
     echo "Oracle Linux detected - unprotecting systemd temporarily for distro-sync to succeed..."
     mv /etc/yum/protected.d/systemd.conf /etc/yum/protected.d/systemd.conf.bak
