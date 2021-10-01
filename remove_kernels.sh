@@ -106,6 +106,10 @@ prepare_list_of_kernels_to_be_removed() {
 }
 
 prepare_systemd_service() {
+  # Once there's a list of the kernel-related packages the user wants to 
+  # remove, create a systemd service that removes them and reboots the machine
+  # if the removal succeeds. It will be enabled and run automatically on next
+  # system boot.
   script_location="$(readlink -f $0)"
   cat > "/etc/systemd/system/remove-non-eurolinux-kernels.service" <<-EOF
 [Unit]
