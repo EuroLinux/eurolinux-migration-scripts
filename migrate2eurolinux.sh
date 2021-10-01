@@ -540,7 +540,6 @@ force_el_release() {
           yum download el-release
           dep_check yumdownloader
           ;;
-        *) : ;;
     esac
     for i in ${bad_packages[@]} ; do rpm -e --nodeps $i || true ; done
 
