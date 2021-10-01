@@ -79,9 +79,9 @@ update_grub() {
 }
 
 prepare_list_of_kernels_to_be_removed() {
-  # Consider several scenarios such non-EuroLinux kernels that come from e.g.
-  # ELRepo or other sources. What should be done with them is up to the user
-  # to decide via an answer or a parameter.
+  # Consider several scenarios such as non-EuroLinux kernels that come from
+  # e.g.  ELRepo or other sources. What should be done with them is up to the
+  # user to decide via an interactive answer.
   mapfile -t all_non_eurolinux_kernel_packages < \
     <(printf -- '%s\n' "${installed_kernel_packages[@]}" | grep -Ev 'EuroLinux|Scientific' | sed 's@\ @\_@g')
   mapfile -t migratable_distros_kernel_packages < \
