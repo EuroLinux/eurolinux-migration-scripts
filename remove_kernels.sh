@@ -60,22 +60,12 @@ set_latest_eurolinux_kernel() {
 }
 
 update_grub() {
-  # Cover all distros and versions bootloader entries.
-  # This snippet has been copied from migrate2eurolinux.sh and it's about to
-  # be brainstormed what location/responsibility (script) suits it better,
-  # TODO: more EFI entries?
-  echo "Updating the GRUB2 bootloader..."
-  if [ -d /sys/firmware/efi ]; then
-    if [ -d /boot/efi/EFI/almalinux ]; then
-      grub2-mkconfig -o /boot/efi/EFI/almalinux/grub.cfg
-    elif [ -d /boot/efi/EFI/centos ]; then
-      grub2-mkconfig -o /boot/efi/EFI/centos/grub.cfg
-    else
-      grub2-mkconfig -o /boot/efi/EFI/redhat/grub.cfg
-    fi
-  else
-    grub2-mkconfig -o /boot/grub2/grub.cfg
-  fi
+  # Update bootloader entries. Output to a symlink which always points to the
+  # proper configuration file.
+  printf "Updating the GRUB2 bootloader at: "
+  [ -d /sys/firmware/efi ] && grub2_conf="/etc/grub2-efi.cfg" || grub2_conf="/etc/grub2.cfg"
+  printf "$grub2_conf (symlinked to $(readlink $grub2_conf)).\n"
+  grub2-mkconfig -o "$grub2_conf"
 }
 
 prepare_list_of_kernels_to_be_removed() {
@@ -134,7 +124,7 @@ SuccessAction=reboot
 
 [Service]
 Type=oneshot
-ExecStart=/bin/bash -c "cat /root/kernel_packages_to_remove.txt | xargs yum remove -y && source $script_location && update_grub
+ExecStart=/bin/bash -c "cat /root/kernel_packages_to_remove.txt | xargs yum remove -y && [ -d /sys/firmware/efi ] && grub2-mkconfig -o /etc/grub2-efi.cfg || grub2-mkconfig -o /etc/grub2.cfg"
 ExecStartPost=/bin/systemctl disable remove-non-eurolinux-kernels.service
 
 [Install]
@@ -144,7 +134,6 @@ EOF
   systemctl enable remove-non-eurolinux-kernels.service && \
     echo "Kernel removal will be performed on next system boot."
     echo "Additionally a GRUB2 update will be performed along with an automatic system reboot"
-    echo "Please don't remove this repository before the operations mentioned above have finished their job."
 }
 
 main() {
