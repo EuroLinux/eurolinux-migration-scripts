@@ -670,24 +670,12 @@ reinstall_all_rpms() {
 }
 
 update_grub() {
-  # Cover all distros and versions bootloader entries.
-  # TODO: more EFI entries?
-  case "$os_version" in
-    7* | 8*)
-      echo "Updating the GRUB2 bootloader..."
-      if [ -d /sys/firmware/efi ]; then
-        if [ -d /boot/efi/EFI/almalinux ]; then
-          grub2-mkconfig -o /boot/efi/EFI/almalinux/grub.cfg
-        elif [ -d /boot/efi/EFI/centos ]; then
-          grub2-mkconfig -o /boot/efi/EFI/centos/grub.cfg
-        else
-          grub2-mkconfig -o /boot/efi/EFI/redhat/grub.cfg
-        fi
-      else
-        grub2-mkconfig -o /boot/grub2/grub.cfg
-      fi
-    ;;
-  esac
+  # Update bootloader entries. Output to a symlink which always points to the
+  # proper configuration file.
+  printf "Updating the GRUB2 bootloader at: "
+  [ -d /sys/firmware/efi ] && grub2_conf="/etc/grub2-efi.cfg" || grub2_conf="/etc/grub2.cfg"
+  printf "$grub2_conf (symlinked to $(readlink $grub2_conf)).\n"
+  grub2-mkconfig -o "$grub2_conf"
 }
 
 remove_leftovers() {
