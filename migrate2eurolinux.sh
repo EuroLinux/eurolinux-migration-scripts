@@ -381,7 +381,6 @@ register_to_euroman() {
       fi
       echo "Installing EuroMan-related tools..."
       yum install -y python-hwdata rhn-client-tools rhn-check yum-rhn-plugin yum-utils rhnlib rhn-setup rhnsd
-      yum update -y  python-hwdata rhn-client-tools rhn-check yum-rhn-plugin yum-utils rhnlib rhn-setup rhnsd
       echo "Determining el_org_id based on your registration name & password..."
       el_org_id=$(python2 -c "
 import xmlrpclib
