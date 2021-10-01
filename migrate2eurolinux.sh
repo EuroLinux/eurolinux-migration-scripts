@@ -293,12 +293,7 @@ grab_gpg_keys() {
   # Get EuroLinux public GPG keys; store them in a predefined location before
   # adding any repositories.
   echo "Grabbing EuroLinux GPG keys..."
-  case "$os_version" in
-    7* | 8*)
-      curl "https://fbi.cdn.euro-linux.com/security/RPM-GPG-KEY-eurolinux$major_os_version" > "/etc/pki/rpm-gpg/RPM-GPG-KEY-eurolinux$major_os_version"
-      ;;
-    *) exit_message "You appear to be running an unsupported OS version: ${os_version}." ;;
-  esac
+  curl "https://fbi.cdn.euro-linux.com/security/RPM-GPG-KEY-eurolinux$major_os_version" > "/etc/pki/rpm-gpg/RPM-GPG-KEY-eurolinux$major_os_version"
 }
 
 create_temp_el_repo() {
