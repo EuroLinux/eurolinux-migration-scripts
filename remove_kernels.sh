@@ -31,6 +31,18 @@ check_successful_migration() {
 el-release."
   fi
 
+  # Query for the kernel-related packages and their metadata such as their
+  # Vendor - such information will prove invaluable when determining, which of
+  # them are made: by EuroLinux, by the Vendor of the distro a migration has
+  # been performed from and by other third-party providers.
+  # The result of the query will be stored in a Bash array named
+  # installed_kernel_packages - though with a small twist of replacing spaces
+  # with underscores since all whitespace characters will be treated as
+  # delimiters later on.
+  # Since earlier EuroLinux packages are branded as Scientific Linux, an
+  # additional pattern is considered when looking up EuroLinux products. The
+  # same pattern is used further in this script along with the replacement of
+  # spaces with underscores.
   mapfile -t installed_kernel_packages < <(rpm -qa --qf '%{NAME}-%{VERSION}-%{RELEASE}.%{ARCH}|%{VENDOR}|%{PACKAGER}\n' kernel* | sed 's@\ @\_@g')
   latest_eurolinux_kernel_package="$(printf -- '%s\n' "${installed_kernel_packages[@]}" | grep -E 'EuroLinux|Scientific' | grep '^kernel-[0-9]\.[0-9]' | sort -r | head -n 1 | cut -d '|' -f 1)"
   if [ -z "$latest_eurolinux_kernel_package" ]; then
