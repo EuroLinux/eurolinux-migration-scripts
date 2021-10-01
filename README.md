@@ -15,8 +15,12 @@ The following distributions are supported on the x86_64 architecture:
 - Oracle Linux 7
 - Oracle Linux 8
 - Red Hat Enterprise Linux 7
+- Red Hat Enterprise Linux 8
 - Rocky Linux 8
 - Scientific Linux 7
+
+The distributions must be up to date and only their latest minor release is
+supported.
 
 ## Preparations
 
