@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash
 # Initially based on Oracle's centos2ol script. Thus licensed under the Universal Permissive License v1.0
 # Copyright (c) 2020, 2021 Oracle and/or its affiliates.
 # Copyright (c) 2021 EuroLinux
@@ -301,7 +301,7 @@ grab_gpg_keys() {
   echo "Grabbing EuroLinux GPG keys..."
   case "$os_version" in
     7* | 8*)
-      curl --silent "https://fbi.cdn.euro-linux.com/security/RPM-GPG-KEY-eurolinux$major_os_version" > "/etc/pki/rpm-gpg/RPM-GPG-KEY-eurolinux$major_os_version"
+      curl "https://fbi.cdn.euro-linux.com/security/RPM-GPG-KEY-eurolinux$major_os_version" > "/etc/pki/rpm-gpg/RPM-GPG-KEY-eurolinux$major_os_version"
       ;;
     *) exit_message "You appear to be running an unsupported OS version: ${os_version}." ;;
   esac
@@ -553,6 +553,16 @@ force_el_release() {
         *) : ;;
     esac
     for i in ${bad_packages[@]} ; do rpm -e --nodeps $i || true ; done
+
+    # Additional tweak for RHEL 8 - remove these directories manually.
+    # Otherwise an error will show up:
+    # error: unpacking of archive failed on file [...]: cpio: File from 
+    # package already exists as a directory in system
+    if [[ "$old_release" =~ redhat-release-8 ]]; then
+      echo "RHEL 8 detected - removing 'redhat-release*' directories manually."
+      rm -rf /usr/share/doc/redhat-release* /usr/share/redhat-release*
+    fi
+
     rpm -i --force el-release*
 fi
 }
