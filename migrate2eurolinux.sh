@@ -301,7 +301,7 @@ grab_gpg_keys() {
   echo "Grabbing EuroLinux GPG keys..."
   case "$os_version" in
     7* | 8*)
-      curl --silent "https://fbi.cdn.euro-linux.com/security/RPM-GPG-KEY-eurolinux$major_os_version" > "/etc/pki/rpm-gpg/RPM-GPG-KEY-eurolinux$major_os_version"
+      curl "https://fbi.cdn.euro-linux.com/security/RPM-GPG-KEY-eurolinux$major_os_version" > "/etc/pki/rpm-gpg/RPM-GPG-KEY-eurolinux$major_os_version"
       ;;
     *) exit_message "You appear to be running an unsupported OS version: ${os_version}." ;;
   esac
