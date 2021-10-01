@@ -648,7 +648,12 @@ reinstall_all_rpms() {
   # party repositories such as EPEL.
   echo "Reinstalling all RPMs..."
   yum reinstall -y \*
-  mapfile -t non_eurolinux_rpms < <(rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}|%{VENDOR}|%{PACKAGER}\n" |grep -Ev 'EuroLinux|Scientific') # Several packages are branded as from Scientific Linux and that's the expected behavior
+
+  # Query all packages and their metadata such as their Vendor. The result of
+  # the query will be stored in a Bash array named non_eurolinux_rpms.
+  # Since earlier EuroLinux packages are branded as Scientific Linux, an
+  # additional pattern is considered when looking up EuroLinux products.
+   mapfile -t non_eurolinux_rpms < <(rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}|%{VENDOR}|%{PACKAGER}\n" |grep -Ev 'EuroLinux|Scientific') 
   if [[ -n "${non_eurolinux_rpms[*]}" ]]; then
     echo "The following non-EuroLinux RPMs are installed on the system:"
     printf '\t%s\n' "${non_eurolinux_rpms[@]}"
