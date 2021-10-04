@@ -128,6 +128,12 @@ prepare_list_of_kernels_to_be_removed() {
   esac
 }
 
+migrate_rescue_kernels() {
+  # Only applicable to EL8 right now. To be ported to EL7 if needed.
+  find /boot -name '*vmlinuz*rescue*' -exec rm -f {} + -exec grubby --remove-kernel={} \;
+  kernel-install add "${latest_eurolinux_kernel_path##*/vmlinuz-}" "$latest_eurolinux_kernel_path"
+}
+
 prepare_systemd_service() {
   # Once there's a list of the kernel-related packages the user wants to 
   # remove, create a systemd service that removes them and reboots the machine
@@ -159,6 +165,7 @@ main() {
   set_latest_eurolinux_kernel
   update_grub
   prepare_list_of_kernels_to_be_removed
+  migrate_rescue_kernels
   prepare_systemd_service
 }
 
