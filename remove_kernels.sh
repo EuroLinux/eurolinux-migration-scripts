@@ -1,15 +1,29 @@
 #!/bin/bash 
 # name: remove_kernels.sh
 #
-# description: remove kernels and GPG keys from the distro the migration has
-# been performed from
+# description: remove kernels and kernel-related packages from the distro the
+# migration has been performed from
 #
 # Copyright 2021 EuroLinux, Inc.
 # Author: Tomasz Podsiadły <tp@euro-linux.com>
 
+usage() {
+    echo "Usage: ${0##*/} [OPTIONS]"
+    echo
+    echo "OPTIONS"
+    echo "-a 2/3  The number of the answer on what to remove:"
+    echo "        2 - all non-EuroLinux kernels and related packages including"
+    echo "        those from unofficial sources."
+    echo "        3 - kernels and related packages only provided by the "
+    echo "        distro that has been migrated to EuroLinux."
+    echo "-h      Display this help and exit"
+    exit 1
+}
+
 beginning_preparations() {
   set -e
   github_url="https://github.com/EuroLinux/eurolinux-migration-scripts"
+  declare -i answer
 }
 
 exit_message() {
@@ -91,23 +105,26 @@ prepare_list_of_kernels_to_be_removed() {
   if [ ${#migratable_distros_kernel_packages[@]} -gt 0 ]; then
     echo "3. remove only the kernel packages that come from migratable distros"
   fi
-  echo "Please type the number of the desired operation: "
-  read answer
+
+  if [ -z "$answer" ]; then
+    echo "Please type the number of the desired operation: "
+    read answer
+  else
+    echo "The desired operation has been specified with \"${0##*/} -a $answer\", proceeding..."
+  fi
 
   case "$answer" in
-    1) 
-       echo "Leaving all kernel packages as they are."
+    1) echo "Leaving all kernel packages as they are."
        exit 0
        ;;
     2) printf -- '%s\n' "${all_non_eurolinux_kernel_packages[@]%%|*}" > /root/kernel_packages_to_remove.txt ;;
-    3) 
-       if [ ${#migratable_distros_kernel_packages[@]} -gt 0 ]; then
+    3) if [ ${#migratable_distros_kernel_packages[@]} -gt 0 ]; then
          printf -- '%s\n' "${migratable_distros_kernel_packages[@]%%|*}" > /root/kernel_packages_to_remove.txt
        else
-         exit_message "Unknown answer: $answer."
+         exit_message "Answer $answer not applicable since there are no kernel packages provided by a distro that has been migrated to EuroLinux."
        fi
        ;;
-    *) exit_message "Unknown answer: $answer."
+    *) exit_message "Unknown Answer: $answer."
   esac
 }
 
@@ -144,5 +161,13 @@ main() {
   prepare_list_of_kernels_to_be_removed
   prepare_systemd_service
 }
+
+while getopts "a:h" option; do
+    case "$option" in
+        a) answer="$OPTARG" ;;
+        h) usage ;;
+        *) usage ;;
+    esac
+done
 
 main
