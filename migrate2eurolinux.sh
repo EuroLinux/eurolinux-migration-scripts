@@ -8,6 +8,7 @@ beginning_preparations() {
   unset CDPATH
   declare el_euroman_user
   declare el_euroman_password
+  declare preserve="false"
 
   github_url="https://github.com/EuroLinux/eurolinux-migration-scripts"
   # These are all the packages we need to remove. Some may not reside in
@@ -20,6 +21,8 @@ usage() {
     echo "Usage: ${0##*/} [OPTIONS]"
     echo
     echo "OPTIONS"
+    echo "-b      Preserve some non-EuroLinux extras (e.g. third-party"
+    echo "        repositories and backed-up .repo files)"
     echo "-f      Skip warning messages"
     echo "-h      Display this help and exit"
     echo
@@ -421,6 +424,8 @@ print(my_org)
 }
 
 disable_distro_repos() {
+  # Remove all non-Eurolinux .repo files unless the 'preserve' option has been
+  # provided. If it was, then here's a summary of the function's logic:
   # Different distros provide their repositories in different ways. There may
   # be some additional .repo files that are covered by distro X but not by
   # distro Y. The files may be provided by different packages rather than a
@@ -436,58 +441,63 @@ disable_distro_repos() {
 
   cd "$reposdir"
 
-  cd "$(mktemp -d)"
-  trap final_failure ERR
-
-  # Most distros keep their /etc/yum.repos.d content in the -release rpm. Some do not and here are the tweaks for their more complex solutions...
-  case "$old_release" in
-    centos-release-8.*|centos-linux-release-8.*)
-      old_release=$(rpm -qa centos*repos) ;;
-    rocky-release*)
-      old_release=$(rpm -qa rocky*repos) ;;
-    oraclelinux-release-8.*)
-      old_release=$(rpm -qa oraclelinux-release-el8*) ;;
-    oraclelinux-release-7.*)
-      old_release=$(rpm -qa oraclelinux-release-el7*) ;;
-    *) : ;;
-  esac
-
-  echo "Backing up and removing old repository files..."
-
-  # ... this one should apply to any Enterprise Linux except RHEL:
-  echo "Identify repo files from the base OS..."
-  if [[ "$old_release" =~ redhat-release ]]; then
-    echo "RHEL detected and repo files are not provided by 'release' package."
+  if [ "$preserve" != "true" ]; then
+    rm -f *.repo
+    create_temp_el_repo
   else
-    rpm -ql "$old_release" | grep '\.repo$' > repo_files
-  fi
+    cd "$(mktemp -d)"
+    trap final_failure ERR
 
-  # ... and the complex solutions continue with these checks:
-  if [ "$(rpm -qa "centos-release*" | wc -l)" -gt 0 ] ; then
-  echo "Identify repo files from 'CentOS extras'..."
-    rpm -qla "centos-release*" | grep '\.repo$' >> repo_files
-  fi
+    # Most distros keep their /etc/yum.repos.d content in the -release rpm. Some do not and here are the tweaks for their more complex solutions...
+    case "$old_release" in
+      centos-release-8.*|centos-linux-release-8.*)
+        old_release=$(rpm -qa centos*repos) ;;
+      rocky-release*)
+        old_release=$(rpm -qa rocky*repos) ;;
+      oraclelinux-release-8.*)
+        old_release=$(rpm -qa oraclelinux-release-el8*) ;;
+      oraclelinux-release-7.*)
+        old_release=$(rpm -qa oraclelinux-release-el7*) ;;
+      *) : ;;
+    esac
 
-  if [ "$(rpm -qa "yum-conf-*" | wc -l)" -gt 0 ] ; then
-  echo "Identify repo files from 'Scientific Linux extras'..."
-    rpm -qla "yum-conf-*" | grep '\.repo$' >> repo_files
-  fi
+    echo "Backing up and removing old repository files..."
 
-  # ... finally we should have all the old repos disabled!
-  while read -r repo; do
-    if [ -f "$repo" ]; then
-      cat - "$repo" > "$repo".disabled <<EOF
+    # ... this one should apply to any Enterprise Linux except RHEL:
+    echo "Identify repo files from the base OS..."
+    if [[ "$old_release" =~ redhat-release ]]; then
+      echo "RHEL detected and repo files are not provided by 'release' package."
+    else
+      rpm -ql "$old_release" | grep '\.repo$' > repo_files
+    fi
+
+    # ... and the complex solutions continue with these checks:
+    if [ "$(rpm -qa "centos-release*" | wc -l)" -gt 0 ] ; then
+    echo "Identify repo files from 'CentOS extras'..."
+      rpm -qla "centos-release*" | grep '\.repo$' >> repo_files
+    fi
+
+    if [ "$(rpm -qa "yum-conf-*" | wc -l)" -gt 0 ] ; then
+    echo "Identify repo files from 'Scientific Linux extras'..."
+      rpm -qla "yum-conf-*" | grep '\.repo$' >> repo_files
+    fi
+
+    # ... finally we should have all the old repos disabled!
+    while read -r repo; do
+      if [ -f "$repo" ]; then
+        cat - "$repo" > "$repo".disabled <<EOF
 # This is a yum repository file that was disabled by
 # ${0##*/}, a script to convert an Enterprise Linux variant to EuroLinux.
 # Please see $github_url for more information.
 
 EOF
-      tmpfile=$(mktemp repo.XXXXX)
-      echo "$repo" | cat - "$repo" > "$tmpfile"
-      rm "$repo"
-    fi
-  done < repo_files
-  trap - ERR
+        tmpfile=$(mktemp repo.XXXXX)
+        echo "$repo" | cat - "$repo" > "$tmpfile"
+        rm "$repo"
+      fi
+    done < repo_files
+    trap - ERR
+  fi
 }
 
 remove_centos_yum_branding() {
@@ -730,8 +740,9 @@ main() {
   congratulations
 }
 
-while getopts "fhp:u:" option; do
+while getopts "bfhp:u:" option; do
     case "$option" in
+        b) preserve="true"
         f) skip_warning="true" ;;
         h) usage ;;
         p) el_euroman_password="$OPTARG" ;;
