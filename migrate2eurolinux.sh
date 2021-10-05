@@ -677,8 +677,12 @@ reinstall_all_rpms() {
     echo "If a large number of RPMs from other vendors are included and you're unsure why please open an issue on ${github_url}"
     if [ "$preserve" != "true" ]; then
       echo "Removing these packages (except those kernel-related) automatically..."
-      non_eurolinux_rpms=( ${non_eurolinux_rpms_and_metadata[@]%%|*} )
-      yum remove-nevra -y ${non_eurolinux_rpms[@]/kernel*/}
+      non_eurolinux_rpms_and_metadata_without_kernel_related=( ${non_eurolinux_rpms_and_metadata[@]/kernel*/} )
+      if [ ${#non_eurolinux_rpms_and_metadata_without_kernel_related[@]} -gt 0 ]; then
+        yum remove-nevra -y ${non_eurolinux_rpms_and_metadata_without_kernel_related[@]%%|*}
+      else
+        echo "(no need to remove anything)"
+      fi
     fi
   fi
 }
