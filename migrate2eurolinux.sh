@@ -669,12 +669,17 @@ reinstall_all_rpms() {
   # two lines rather than one due to their long filename - the output is
   # modified via `sed` to deal with this curiosity.
    mapfile -t non_eurolinux_rpms_from_yum_list < <(yum list installed | sed '/^[^@]*$/{N;s/\n//}' | grep -Ev '@el-server-|@euroman|@fbi|@certify' | grep '@' | cut -d' ' -f 1 | cut -d'.' -f 1)
-   mapfile -t non_eurolinux_rpms < <(rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}|%{VENDOR}|%{PACKAGER}\n" ${non_eurolinux_rpms_from_yum_list[*]} | grep -Ev 'EuroLinux|Scientific') 
+   mapfile -t non_eurolinux_rpms < <(rpm -qa --qf "%{NEVRA}|%{VENDOR}|%{PACKAGER}\n" ${non_eurolinux_rpms_from_yum_list[*]} | grep -Ev 'EuroLinux|Scientific') 
   if [[ -n "${non_eurolinux_rpms[*]}" ]]; then
     echo "The following non-EuroLinux RPMs are installed on the system:"
     printf '\t%s\n' "${non_eurolinux_rpms[@]}"
     echo "This may be expected of your environment and does not necessarily indicate a problem."
     echo "If a large number of RPMs from other vendors are included and you're unsure why please open an issue on ${github_url}"
+    if [ "$preserve" != "true" ]; then
+      echo "Removing these packages automatically..."
+      yum remove-nevra -y "${non_eurolinux_rpms[@]%%|*}"
+    fi
+
   fi
 }
 
