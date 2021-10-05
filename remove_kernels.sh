@@ -107,6 +107,15 @@ prepare_list_of_kernels_to_be_removed() {
   esac
 }
 
+remove_old_rescue_kernels() {
+  # Only applicable to EL8 right now. To be ported to EL7 if needed.
+  echo "Removing old 'rescue' kernels and bootloader entries..."
+  find /boot -name '*vmlinuz*rescue*' -exec rm -f {} + -exec grubby --remove-kernel={} \;
+
+  # Generation of a new rescue kernel is not yet production-ready and thus commented out
+  #kernel-install add "${latest_eurolinux_kernel_path##*/vmlinuz-}" "$latest_eurolinux_kernel_path"
+}
+
 set_latest_eurolinux_kernel() {
   # Determine the EuroLinux-branded kernel that is installed and set it as the
   # default one. The system shall be rebooted soon after and other kernels will
@@ -123,7 +132,6 @@ update_grub() {
   printf "$grub2_conf (symlinked to $(readlink $grub2_conf)).\n"
   grub2-mkconfig -o "$grub2_conf"
 }
-
 
 prepare_systemd_service() {
   # Once there's a list of the kernel-related packages the user wants to 
@@ -154,6 +162,7 @@ main() {
   beginning_preparations
   check_successful_migration
   prepare_list_of_kernels_to_be_removed
+  remove_old_rescue_kernels
   set_latest_eurolinux_kernel
   update_grub
   prepare_systemd_service
