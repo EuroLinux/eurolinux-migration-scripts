@@ -43,6 +43,9 @@ bash migrate2eurolinux.sh
 
 You can specify several parameters:
 
+- `-b` to preserve several non-EuroLinux components such as packages from
+  unofficial repositories, disabled and backed-up .repo files from your
+  current distribution, etc. rather than cleaning them up.
 - `-f` to skip a warning message about backup recommendation. Necessary for
   running non-interactively.
 - `-u` to specify your EuroMan username
