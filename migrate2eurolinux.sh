@@ -420,6 +420,18 @@ print(my_org)
   esac
 }
 
+remove_distro_gpg_pubkey() {
+  # We need to make sure only the pubkeys of the vendors that provide the
+  # distros we're migrating from are removed and only these. As of today the
+  # solution is to have an array with their emails and make sure the
+  # corresponding pubkeys are removed.
+  bad_providers=('packager@almalinux.org' 'security@centos.org' 'build@oss.oracle.com' 'security@redhat.com' 'infrastructure@rockylinux.org' 'scientific-linux-devel@fnal.gov')
+  keys="$(rpm -qa --qf '%{nevra} %{packager}\n' gpg-pubkey*)"
+  for provider in ${bad_providers[*]} ; do
+    grep -i $provider <<< "$keys" | cut -d' ' -f 1 | xargs rpm -e
+  done
+}
+
 disable_distro_repos() {
   # Different distros provide their repositories in different ways. There may
   # be some additional .repo files that are covered by distro X but not by
