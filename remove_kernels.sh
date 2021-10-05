@@ -8,15 +8,17 @@
 # Author: Tomasz Podsiadły <tp@euro-linux.com>
 
 usage() {
-    echo "Usage: ${0##*/} [OPTIONS]"
-    echo
-    echo "OPTIONS"
-    echo "-a 2/3  The number of the answer on what to remove:"
-    echo "        2 - all non-EuroLinux kernels and related packages including"
-    echo "        those from unofficial sources."
-    echo "        3 - kernels and related packages only provided by the "
-    echo "        distro that has been migrated to EuroLinux."
-    echo "-h      Display this help and exit"
+    echo "Usage: ${0##*/} [OPTIONS]
+
+OPTIONS
+-a 1/2/3    The number of the answer on what to remove:
+            1 - dry-run, just list the packages that would be removed and
+              don't touch them
+  (default) 2 - all non-EuroLinux kernels and related packages including
+              those from unofficial sources.
+            3 - kernels and related packages only provided by the distro
+              that has been migrated to EuroLinux.
+-h          Display this help and exit"
     exit 1
 }
 
@@ -57,12 +59,52 @@ el-release."
   # additional pattern is considered when looking up EuroLinux products. The
   # same pattern is used further in this script along with the replacement of
   # spaces with underscores.
-  mapfile -t installed_kernel_packages < <(rpm -qa --qf '%{NAME}-%{VERSION}-%{RELEASE}.%{ARCH}|%{VENDOR}|%{PACKAGER}\n' kernel* | sed 's@\ @\_@g')
+  mapfile -t installed_kernel_packages < <(rpm -qa --qf '%{NAME}-%{VERSION}-%{RELEASE}.%{ARCH}|%{VENDOR}|%{PACKAGER}\n' kernel kernel* | sed 's@\ @\_@g')
   latest_eurolinux_kernel_package="$(printf -- '%s\n' "${installed_kernel_packages[@]}" | grep -E 'EuroLinux|Scientific' | grep '^kernel-[0-9]\.[0-9]' | sort -r | head -n 1 | cut -d '|' -f 1)"
   if [ -z "$latest_eurolinux_kernel_package" ]; then
     exit_message "Could not determine if a migration was successful - could 
 not find a package that provides an EuroLinux kernel."
   fi
+}
+
+prepare_list_of_kernels_to_be_removed() {
+  # Consider several scenarios such as non-EuroLinux kernels that come from
+  # e.g.  ELRepo or other sources. What should be done with them is up to the
+  # user to decide via an interactive answer.
+  mapfile -t all_non_eurolinux_kernel_packages < \
+    <(printf -- '%s\n' "${installed_kernel_packages[@]}" | grep -Ev 'EuroLinux|Scientific' | sed 's@\ @\_@g')
+  mapfile -t migratable_distros_kernel_packages < \
+    <(printf -- '%s\n' ${all_non_eurolinux_kernel_packages[@]} | grep -E 'Red.Hat|CentOS|Oracle|Rocky|Alma' | sed 's@\ @\_@g')
+  echo "The following non-EuroLinux kernel packages are still remaining:"
+  [ ${#migratable_distros_kernel_packages[@]} -eq 0 ] && echo 'none, nothing to do, exiting.' && exit 0
+  printf -- '%s\n' "${all_non_eurolinux_kernel_packages[@]}"
+  echo "---"
+  if [ ${#migratable_distros_kernel_packages[@]} -gt 0 ]; then
+    echo "Among which these come from the systems the script supports migration from:"
+    printf -- '%s\n' "${migratable_distros_kernel_packages[@]}"
+    echo "---"
+  fi
+
+  if [ -z "$answer" ]; then
+    echo "The answer hasn't been specified - proceeding by removing all non-EuroLinux kernels and related packagaes."
+    answer=2
+  else
+    echo "The desired operation has been specified with \"${0##*/} -a $answer\", proceeding..."
+  fi
+
+  case "$answer" in
+    1) echo "Leaving all kernel packages as they are."
+       exit 0
+       ;;
+    2) printf -- '%s\n' "${all_non_eurolinux_kernel_packages[@]%%|*}" > /root/kernel_packages_to_remove.txt ;;
+    3) if [ ${#migratable_distros_kernel_packages[@]} -gt 0 ]; then
+         printf -- '%s\n' "${migratable_distros_kernel_packages[@]%%|*}" > /root/kernel_packages_to_remove.txt
+       else
+         exit_message "Answer $answer not applicable since there are no kernel packages provided by a distro that has been migrated to EuroLinux."
+       fi
+       ;;
+    *) exit_message "Unknown Answer: $answer."
+  esac
 }
 
 set_latest_eurolinux_kernel() {
@@ -82,51 +124,6 @@ update_grub() {
   grub2-mkconfig -o "$grub2_conf"
 }
 
-prepare_list_of_kernels_to_be_removed() {
-  # Consider several scenarios such as non-EuroLinux kernels that come from
-  # e.g.  ELRepo or other sources. What should be done with them is up to the
-  # user to decide via an interactive answer.
-  mapfile -t all_non_eurolinux_kernel_packages < \
-    <(printf -- '%s\n' "${installed_kernel_packages[@]}" | grep -Ev 'EuroLinux|Scientific' | sed 's@\ @\_@g')
-  mapfile -t migratable_distros_kernel_packages < \
-    <(printf -- '%s\n' ${all_non_eurolinux_kernel_packages[@]} | grep -E 'Red.Hat|CentOS|Oracle|Rocky|Alma' | sed 's@\ @\_@g')
-  echo "The following non-EuroLinux kernel packages are still remaining:"
-  printf -- '%s\n' "${all_non_eurolinux_kernel_packages[@]}"
-  echo "---"
-  if [ ${#migratable_distros_kernel_packages[@]} -gt 0 ]; then
-    echo "Among which these come from the systems the script supports migration from:"
-    printf -- '%s\n' "${migratable_distros_kernel_packages[@]}"
-    echo "---"
-  fi
-
-  echo "What should the script do:"
-  echo "1. leave all non-EuroLinux kernel packages as they are"
-  echo "2. remove all non-EuroLinux kernel packages"
-  if [ ${#migratable_distros_kernel_packages[@]} -gt 0 ]; then
-    echo "3. remove only the kernel packages that come from migratable distros"
-  fi
-
-  if [ -z "$answer" ]; then
-    echo "Please type the number of the desired operation: "
-    read answer
-  else
-    echo "The desired operation has been specified with \"${0##*/} -a $answer\", proceeding..."
-  fi
-
-  case "$answer" in
-    1) echo "Leaving all kernel packages as they are."
-       exit 0
-       ;;
-    2) printf -- '%s\n' "${all_non_eurolinux_kernel_packages[@]%%|*}" > /root/kernel_packages_to_remove.txt ;;
-    3) if [ ${#migratable_distros_kernel_packages[@]} -gt 0 ]; then
-         printf -- '%s\n' "${migratable_distros_kernel_packages[@]%%|*}" > /root/kernel_packages_to_remove.txt
-       else
-         exit_message "Answer $answer not applicable since there are no kernel packages provided by a distro that has been migrated to EuroLinux."
-       fi
-       ;;
-    *) exit_message "Unknown Answer: $answer."
-  esac
-}
 
 prepare_systemd_service() {
   # Once there's a list of the kernel-related packages the user wants to 
@@ -156,9 +153,9 @@ EOF
 main() {
   beginning_preparations
   check_successful_migration
+  prepare_list_of_kernels_to_be_removed
   set_latest_eurolinux_kernel
   update_grub
-  prepare_list_of_kernels_to_be_removed
   prepare_systemd_service
 }
 
