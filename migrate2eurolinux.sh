@@ -726,6 +726,7 @@ main() {
   grab_gpg_keys
   create_temp_el_repo
   register_to_euroman
+  remove_distro_gpg_pubkey
   disable_distro_repos
   fix_oracle_shenanigans
   remove_centos_yum_branding
