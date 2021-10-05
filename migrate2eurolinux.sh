@@ -664,7 +664,7 @@ reinstall_all_rpms() {
   # Since earlier EuroLinux packages are branded as Scientific Linux, an
   # additional pattern is considered when looking up EuroLinux products.
   # Some packages may not be branded properly - we use `yum` to determine
-  # their origin and then chech with `rpm`.
+  # their origin and then check with `rpm`.
   # When listing packages with `yum`, there may be a few which are listed with
   # two lines rather than one due to their long filename - the output is
   # modified via `sed` to deal with this curiosity.
