@@ -753,7 +753,7 @@ main() {
 
 while getopts "bfhp:u:" option; do
     case "$option" in
-        b) preserve="true"
+        b) preserve="true" ;;
         f) skip_warning="true" ;;
         h) usage ;;
         p) el_euroman_password="$OPTARG" ;;
