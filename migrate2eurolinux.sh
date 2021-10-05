@@ -506,7 +506,7 @@ remove_centos_yum_branding() {
   # removals will be provided here.
   if [[ "$old_release" =~ centos ]]; then
     echo "Removing CentOS-specific yum configuration from /etc/yum.conf..."
-    sed -i.bak -e 's/^distroverpkg/#&/g' -e 's/^bugtracker_url/#&/g' /etc/yum.conf
+    sed -i.bak -e 's/^distroverpkg.*//g' -e 's/^bugtracker_url.*//g' /etc/yum.conf
   fi
 }
 
