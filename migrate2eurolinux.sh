@@ -663,7 +663,13 @@ reinstall_all_rpms() {
   # the query will be stored in a Bash array named non_eurolinux_rpms.
   # Since earlier EuroLinux packages are branded as Scientific Linux, an
   # additional pattern is considered when looking up EuroLinux products.
-   mapfile -t non_eurolinux_rpms < <(rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}|%{VENDOR}|%{PACKAGER}\n" |grep -Ev 'EuroLinux|Scientific') 
+  # Some packages may not be branded properly - we use `yum` to determine
+  # their origin and then chech with `rpm`.
+  # When listing packages with `yum`, there may be a few which are listed with
+  # two lines rather than one due to their long filename - the output is
+  # modified via `sed` to deal with this curiosity.
+   mapfile -t non_eurolinux_rpms_from_yum_list < <(yum list installed | sed '/^[^@]*$/{N;s/\n//}' | grep -Ev '@el-server-|@euroman|@fbi|@certify' | grep '@' | cut -d' ' -f 1 | cut -d'.' -f 1)
+   mapfile -t non_eurolinux_rpms < <(rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}|%{VENDOR}|%{PACKAGER}\n" ${non_eurolinux_rpms_from_yum_list[*]} | grep -Ev 'EuroLinux|Scientific') 
   if [[ -n "${non_eurolinux_rpms[*]}" ]]; then
     echo "The following non-EuroLinux RPMs are installed on the system:"
     printf '\t%s\n' "${non_eurolinux_rpms[@]}"
