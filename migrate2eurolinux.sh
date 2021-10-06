@@ -309,11 +309,16 @@ create_temp_el_repo() {
   # packages is created here and removed later after a migration succeeds.
   # There's no need to worry about the repositories' names - even if they
   # change in future releases, the URLs will stay the same.
-  cd "$reposdir"
-  echo "Creating a temporary repo file for migration..."
-  case "$os_version" in
-    8*)
-      cat > "switch-to-eurolinux.repo" <<-'EOF'
+  # It's possible to use your own repository and provide your own .repo file
+  # as a parameter - in this case no extras are created.
+  if [ -n "$path_to_internal_repo_file" ]; then
+    echo "Using the file \'$path_to_internal_repo_file\' as your source of truth..."
+  else
+    cd "$reposdir"
+    echo "Creating a temporary repo file for migration..."
+    case "$os_version" in
+      8*)
+        cat > "switch-to-eurolinux.repo" <<-'EOF'
 [certify-baseos]
 name = EuroLinux certify BaseOS
 baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/8/$basearch/certify-BaseOS/os
@@ -339,9 +344,9 @@ gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-eurolinux8
 skip_if_unavailable=1
 
 EOF
-      ;;
-    7*)
-      cat > "switch-to-eurolinux.repo" <<-'EOF'
+        ;;
+      7*)
+        cat > "switch-to-eurolinux.repo" <<-'EOF'
 [euroman_tmp]
 name=euroman_tmp
 baseurl=https://elupdate.euro-linux.com/pub/enterprise-7/
@@ -357,9 +362,10 @@ gpgcheck=1
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-eurolinux7
 
 EOF
-      ;;
-    *) exit_message "You appear to be running an unsupported OS version: ${os_version}." ;;
-  esac
+        ;;
+      *) exit_message "You appear to be running an unsupported OS version: ${os_version}." ;;
+    esac
+  fi
 }
 
 register_to_euroman() {
@@ -370,24 +376,27 @@ register_to_euroman() {
   # - that's the most important case of using the temporary
   # switch-to-eurolinux.repo repository. No packages from other vendors can
   # accomplish this task.
-  echo "Registering to EuroMan if applicable..."
-  case "$os_version" in
-    8*) 
-      echo "EuroLinux 8 is Open Core, not registering."
-      ;;
-    *)
-      if [ -z ${el_euroman_user+x} ]; then 
-        echo "Please provide your EuroMan username: "
-        read el_euroman_user
-      fi
-      if [ -z ${el_euroman_password+x} ]; then
-        echo "Please provide your EuroMan password: "
-        read -s el_euroman_password
-      fi
-      echo "Installing EuroMan-related tools..."
-      yum install -y python-hwdata rhn-client-tools rhn-check yum-rhn-plugin yum-utils rhnlib rhn-setup rhnsd
-      echo "Determining el_org_id based on your registration name & password..."
-      el_org_id=$(python2 -c "
+  # It's possible to use your own repository and provide your own .repo file
+  # as a parameter - in this case the registration process is skipped.
+  if [ -z "$path_to_internal_repo_file" ]; then
+    echo "Registering to EuroMan if applicable..."
+    case "$os_version" in
+      8*) 
+        echo "EuroLinux 8 is Open Core, not registering."
+        ;;
+      *)
+        if [ -z ${el_euroman_user+x} ]; then 
+          echo "Please provide your EuroMan username: "
+          read el_euroman_user
+        fi
+        if [ -z ${el_euroman_password+x} ]; then
+          echo "Please provide your EuroMan password: "
+          read -s el_euroman_password
+        fi
+        echo "Installing EuroMan-related tools..."
+        yum install -y python-hwdata rhn-client-tools rhn-check yum-rhn-plugin yum-utils rhnlib rhn-setup rhnsd
+        echo "Determining el_org_id based on your registration name & password..."
+        el_org_id=$(python2 -c "
 import xmlrpclib
 import rhn.transports 
 import ssl
@@ -418,11 +427,12 @@ except xmlrpclib.Fault as e:
 
 my_org = client.user.getDetails(key, \"$el_euroman_user\")['org_id']
 print(my_org)
-      ")
-      echo "Trying to register system with rhnreg_ks..."
-      rhnreg_ks --force --username "$el_euroman_user" --password "$el_euroman_password" --activationkey="$el_org_id-default-$major_os_version"
-      ;;
-  esac
+        ")
+        echo "Trying to register system with rhnreg_ks..."
+        rhnreg_ks --force --username "$el_euroman_user" --password "$el_euroman_password" --activationkey="$el_org_id-default-$major_os_version"
+        ;;
+    esac
+  fi
 }
 
 disable_distro_repos() {
@@ -662,7 +672,7 @@ reinstall_all_rpms() {
   yum reinstall -y \*
 
   # Query all packages and their metadata such as their Vendor. The result of
-  # the query will be stored in a Bash array named non_eurolinux_rpms.
+  # the query will be stored in a Bash array named non_eurolinux_rpms[...].
   # Since earlier EuroLinux packages are branded as Scientific Linux, an
   # additional pattern is considered when looking up EuroLinux products.
   # Some packages may not be branded properly - we use `yum` to determine
@@ -702,8 +712,10 @@ remove_leftovers() {
   # Remove all temporary files and tweaks used during the migration process.
   echo "Removing yum cache..."
   rm -rf /var/cache/{yum,dnf}
-  echo "Removing temporary repo..."
-  rm -f "${reposdir}/switch-to-eurolinux.repo"
+  if [ -z "$path_to_internal_repo_file" ]; then
+    echo "Removing temporary repo..."
+    rm -f "${reposdir}/switch-to-eurolinux.repo" || true
+  fi
 
   if [[ "$old_release" =~ oraclelinux-release-(el)?[78] ]] ; then
     echo "Protecting systemd just as it was initially set up in Oracle Linux..."
