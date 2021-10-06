@@ -13,7 +13,7 @@ beginning_preparations() {
   # These are all the packages we need to remove. Some may not reside in
   # this array since they'll be swapped later on once EuroLinux
   # repositories have been added.
-  bad_packages=(almalinux-backgrounds almalinux-backgrounds-extras almalinux-indexhtml almalinux-logos almalinux-release almalinux-release-opennebula-addons bcache-tools btrfs-progs centos-backgrounds centos-gpg-keys centos-indexhtml centos-linux-release centos-linux-repos centos-logos centos-release centos-release-advanced-virtualization centos-release-ansible26 centos-release-ansible-27 centos-release-ansible-28 centos-release-ansible-29 centos-release-azure centos-release-ceph-jewel centos-release-ceph-luminous centos-release-ceph-nautilus centos-release-ceph-octopus centos-release-configmanagement centos-release-cr centos-release-dotnet centos-release-fdio centos-release-gluster40 centos-release-gluster41 centos-release-gluster5 centos-release-gluster6 centos-release-gluster7 centos-release-gluster8 centos-release-gluster-legacy centos-release-messaging centos-release-nfs-ganesha28 centos-release-nfs-ganesha30 centos-release-nfv-common centos-release-nfv-openvswitch centos-release-openshift-origin centos-release-openstack-queens centos-release-openstack-rocky centos-release-openstack-stein centos-release-openstack-train centos-release-openstack-ussuri centos-release-opstools centos-release-ovirt42 centos-release-ovirt43 centos-release-ovirt44 centos-release-paas-common centos-release-qemu-ev centos-release-qpid-proton centos-release-rabbitmq-38 centos-release-samba411 centos-release-samba412 centos-release-scl centos-release-scl-rh centos-release-storage-common centos-release-virt-common centos-release-xen centos-release-xen-410 centos-release-xen-412 centos-release-xen-46 centos-release-xen-48 centos-release-xen-common desktop-backgrounds-basic insights-client libreport-centos libreport-plugin-mantisbt libreport-plugin-rhtsupport libreport-rhel libreport-rhel-anaconda-bugzilla libreport-rhel-bugzilla oracle-backgrounds oracle-epel-release-el8 oracle-indexhtml oraclelinux-release oraclelinux-release-el7 oraclelinux-release-el8 oracle-logos python3-dnf-plugin-ulninfo python3-syspurpose python-oauth redhat-backgrounds Red_Hat_Enterprise_Linux-Release_Notes-7-en-US redhat-indexhtml redhat-logos redhat-release redhat-release-eula redhat-release-server redhat-support-lib-python redhat-support-tool rocky-backgrounds rocky-gpg-keys rocky-indexhtml rocky-logos rocky-obsolete-packages rocky-release rocky-repos sl-logos uname26 yum-conf-extras yum-conf-repos)
+  bad_packages=(almalinux-backgrounds almalinux-backgrounds-extras almalinux-indexhtml almalinux-logos almalinux-release almalinux-release-opennebula-addons bcache-tools btrfs-progs centos-backgrounds centos-gpg-keys centos-indexhtml centos-linux-release centos-linux-repos centos-logos centos-release centos-release-advanced-virtualization centos-release-ansible26 centos-release-ansible-27 centos-release-ansible-28 centos-release-ansible-29 centos-release-azure centos-release-ceph-jewel centos-release-ceph-luminous centos-release-ceph-nautilus centos-release-ceph-octopus centos-release-configmanagement centos-release-cr centos-release-dotnet centos-release-fdio centos-release-gluster40 centos-release-gluster41 centos-release-gluster5 centos-release-gluster6 centos-release-gluster7 centos-release-gluster8 centos-release-gluster-legacy centos-release-messaging centos-release-nfs-ganesha28 centos-release-nfs-ganesha30 centos-release-nfv-common centos-release-nfv-openvswitch centos-release-openshift-origin centos-release-openstack-queens centos-release-openstack-rocky centos-release-openstack-stein centos-release-openstack-train centos-release-openstack-ussuri centos-release-opstools centos-release-ovirt42 centos-release-ovirt43 centos-release-ovirt44 centos-release-paas-common centos-release-qemu-ev centos-release-qpid-proton centos-release-rabbitmq-38 centos-release-samba411 centos-release-samba412 centos-release-scl centos-release-scl-rh centos-release-storage-common centos-release-virt-common centos-release-xen centos-release-xen-410 centos-release-xen-412 centos-release-xen-46 centos-release-xen-48 centos-release-xen-common centos-repos desktop-backgrounds-basic insights-client libreport-centos libreport-plugin-mantisbt libreport-plugin-rhtsupport libreport-rhel libreport-rhel-anaconda-bugzilla libreport-rhel-bugzilla oracle-backgrounds oracle-epel-release-el8 oracle-indexhtml oraclelinux-release oraclelinux-release-el7 oraclelinux-release-el8 oracle-logos python3-dnf-plugin-ulninfo python3-syspurpose python-oauth redhat-backgrounds Red_Hat_Enterprise_Linux-Release_Notes-7-en-US redhat-indexhtml redhat-logos redhat-release redhat-release-eula redhat-release-server redhat-support-lib-python redhat-support-tool rocky-backgrounds rocky-gpg-keys rocky-indexhtml rocky-logos rocky-obsolete-packages rocky-release rocky-repos sl-logos uname26 yum-conf-extras yum-conf-repos)
 }
 
 usage() {
@@ -433,73 +433,10 @@ print(my_org)
 }
 
 disable_distro_repos() {
-  # Different distros provide their repositories in different ways. There may
-  # be some additional .repo files that are covered by distro X but not by
-  # distro Y. The files may be provided by different packages rather than a
-  # <distro>-release RPM. This function will take care of all these
-  # inconsistencies to disable all the distro-specific repositories.
-  # This is the case mentioned in check_supported_releases() comments about
-  # overriding the old_release variable because of different .repo files'
-  # provider for certain distros.
-  # The procedure may be simplified but not replaced by using a '*.repo' glob 
-  # since there may be some third-party repositories that should not be
-  # disabled such as EPEL - only take care of another Enterprise Linux
-  # repositories.
-
+  # Remove all non-Eurolinux .repo files
   cd "$reposdir"
-
-  cd "$(mktemp -d)"
-  trap final_failure ERR
-
-  # Most distros keep their /etc/yum.repos.d content in the -release rpm. Some do not and here are the tweaks for their more complex solutions...
-  case "$old_release" in
-    centos-release-8.*|centos-linux-release-8.*)
-      old_release=$(rpm -qa centos*repos) ;;
-    rocky-release*)
-      old_release=$(rpm -qa rocky*repos) ;;
-    oraclelinux-release-8.*)
-      old_release=$(rpm -qa oraclelinux-release-el8*) ;;
-    oraclelinux-release-7.*)
-      old_release=$(rpm -qa oraclelinux-release-el7*) ;;
-    *) : ;;
-  esac
-
-  echo "Backing up and removing old repository files..."
-
-  # ... this one should apply to any Enterprise Linux except RHEL:
-  echo "Identify repo files from the base OS..."
-  if [[ "$old_release" =~ redhat-release ]]; then
-    echo "RHEL detected and repo files are not provided by 'release' package."
-  else
-    rpm -ql "$old_release" | grep '\.repo$' > repo_files
-  fi
-
-  # ... and the complex solutions continue with these checks:
-  if [ "$(rpm -qa "centos-release*" | wc -l)" -gt 0 ] ; then
-  echo "Identify repo files from 'CentOS extras'..."
-    rpm -qla "centos-release*" | grep '\.repo$' >> repo_files
-  fi
-
-  if [ "$(rpm -qa "yum-conf-*" | wc -l)" -gt 0 ] ; then
-  echo "Identify repo files from 'Scientific Linux extras'..."
-    rpm -qla "yum-conf-*" | grep '\.repo$' >> repo_files
-  fi
-
-  # ... finally we should have all the old repos disabled!
-  while read -r repo; do
-    if [ -f "$repo" ]; then
-      cat - "$repo" > "$repo".disabled <<EOF
-# This is a yum repository file that was disabled by
-# ${0##*/}, a script to convert an Enterprise Linux variant to EuroLinux.
-# Please see $github_url for more information.
-
-EOF
-      tmpfile=$(mktemp repo.XXXXX)
-      echo "$repo" | cat - "$repo" > "$tmpfile"
-      rm "$repo"
-    fi
-  done < repo_files
-  trap - ERR
+  rm -f *.repo
+  create_temp_el_repo
 }
 
 remove_centos_yum_branding() {
