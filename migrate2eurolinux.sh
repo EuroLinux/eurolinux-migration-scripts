@@ -9,6 +9,7 @@ beginning_preparations() {
   declare el_euroman_user
   declare el_euroman_password
   declare preserve="false"
+  declare path_to_internal_repo_file
 
   github_url="https://github.com/EuroLinux/eurolinux-migration-scripts"
   # These are all the packages we need to remove. Some may not reside in
@@ -25,6 +26,7 @@ usage() {
     echo "        repositories and backed-up .repo files)"
     echo "-f      Skip warning messages"
     echo "-h      Display this help and exit"
+    echo "-r      Use a custom .repo file (for offline migration)"
     echo
     echo "OPTIONS applicable to Enterprise Linux 7 or older"
     echo "-u      Your EuroMan username (usually an email address)"
@@ -755,12 +757,13 @@ main() {
   congratulations
 }
 
-while getopts "bfhp:u:" option; do
+while getopts "bfhp:r:u:" option; do
     case "$option" in
         b) preserve="true" ;;
         f) skip_warning="true" ;;
         h) usage ;;
         p) el_euroman_password="$OPTARG" ;;
+        r) path_to_internal_repo_file="$OPTARG" ;;
         u) el_euroman_user="$OPTARG" ;;
         *) usage ;;
     esac
