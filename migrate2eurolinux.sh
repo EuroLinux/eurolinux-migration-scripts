@@ -297,8 +297,10 @@ for repo in base.repos.listEnabled():
 grab_gpg_keys() {
   # Get EuroLinux public GPG keys; store them in a predefined location before
   # adding any repositories.
-  echo "Grabbing EuroLinux GPG keys..."
-  curl "https://fbi.cdn.euro-linux.com/security/RPM-GPG-KEY-eurolinux$major_os_version" > "/etc/pki/rpm-gpg/RPM-GPG-KEY-eurolinux$major_os_version"
+  if [ -z "$path_to_internal_repo_file" ]; then
+    echo "Grabbing EuroLinux GPG keys..."
+    curl "https://fbi.cdn.euro-linux.com/security/RPM-GPG-KEY-eurolinux$major_os_version" > "/etc/pki/rpm-gpg/RPM-GPG-KEY-eurolinux$major_os_version"
+  fi
 }
 
 create_temp_el_repo() {
@@ -312,7 +314,7 @@ create_temp_el_repo() {
   # It's possible to use your own repository and provide your own .repo file
   # as a parameter - in this case no extras are created.
   if [ -n "$path_to_internal_repo_file" ]; then
-    echo "Using the file \'$path_to_internal_repo_file\' as your source of truth..."
+    cp "$path_to_internal_repo_file" "$reposdir/switch-to-eurolinux.repo"
   else
     cd "$reposdir"
     echo "Creating a temporary repo file for migration..."
@@ -583,7 +585,14 @@ install_el_base() {
   # important dependencies are replaced with ours rather than failing to be
   # removed by a package manager.
   echo "Installing base packages for EuroLinux..."
-  if ! yum shell -y <<EOF
+
+  if [ -n "$path_to_internal_repo_file" ]; then
+    el_base_command='yum shell --disablerepo "certify*" -y'
+  else
+    el_base_command='yum shell -y'
+  fi
+
+  if ! $el_base_command <<EOF
   remove ${bad_packages[@]}
   install ${base_packages[@]}
   run
@@ -712,9 +721,12 @@ remove_leftovers() {
   # Remove all temporary files and tweaks used during the migration process.
   echo "Removing yum cache..."
   rm -rf /var/cache/{yum,dnf}
+  echo "Removing temporary repo..."
   if [ -z "$path_to_internal_repo_file" ]; then
-    echo "Removing temporary repo..."
-    rm -f "${reposdir}/switch-to-eurolinux.repo" || true
+    rm -f "${reposdir}/switch-to-eurolinux.repo"
+  else
+    echo "Since a custom repo has been provided, it will be used from now on as ${reposdir}/eurolinux-offline.repo"
+    mv "${reposdir}/switch-to-eurolinux.repo" "${reposdir}/eurolinux-offline.repo"
   fi
 
   if [[ "$old_release" =~ oraclelinux-release-(el)?[78] ]] ; then
