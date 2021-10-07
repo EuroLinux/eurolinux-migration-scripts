@@ -680,6 +680,15 @@ reinstall_all_rpms() {
   echo "Reinstalling all RPMs..."
   yum reinstall -y \*
 
+  # Once an internal .repo file is provided, search for the names of the
+  # offline repositories and construct them as a grep pattern. Take a look
+  # at the pipe symbol: | before a command substitution takes place - it
+  # will be used for appending the result to `grep -Ev [...]` and will work
+  # even if the variable is nonexistent.
+  if [ -n "$path_to_internal_repo_file" ]; then
+    internal_repo_pattern="|$(grep -oP '\[\K[^\]]+' \"$path_to_internal_repo_file\" | xargs echo | sed 's/ /|/g')"
+  fi
+
   # Query all packages and their metadata such as their Vendor. The result of
   # the query will be stored in a Bash array named non_eurolinux_rpms[...].
   # Since earlier EuroLinux packages are branded as Scientific Linux, an
@@ -689,8 +698,8 @@ reinstall_all_rpms() {
   # When listing packages with `yum`, there may be a few which are listed with
   # two lines rather than one due to their long filename - the output is
   # modified via `sed` to deal with this curiosity.
-   mapfile -t non_eurolinux_rpms_from_yum_list < <(yum list installed | sed '/^[^@]*$/{N;s/\n//}' | grep -Ev '@el-server-|@euroman|@fbi|@certify' | grep '@' | cut -d' ' -f 1 | cut -d'.' -f 1)
-   mapfile -t non_eurolinux_rpms_and_metadata < <(rpm -qa --qf "%{NEVRA}|%{VENDOR}|%{PACKAGER}\n" ${non_eurolinux_rpms_from_yum_list[*]} | grep -Ev 'EuroLinux|Scientific') 
+  mapfile -t non_eurolinux_rpms_from_yum_list < <(yum list installed | sed '/^[^@]*$/{N;s/\n//}' | grep -Ev '@el-server-|@euroman|@fbi|@certify'"$internal_repo_pattern" | grep '@' | cut -d' ' -f 1 | cut -d'.' -f 1)
+  mapfile -t non_eurolinux_rpms_and_metadata < <(rpm -qa --qf "%{NEVRA}|%{VENDOR}|%{PACKAGER}\n" ${non_eurolinux_rpms_from_yum_list[*]} | grep -Ev 'EuroLinux|Scientific') 
   if [[ -n "${non_eurolinux_rpms_and_metadata[*]}" ]]; then
     echo "The following non-EuroLinux RPMs are installed on the system:"
     printf '\t%s\n' "${non_eurolinux_rpms_and_metadata[@]}"
