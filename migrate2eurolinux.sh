@@ -686,7 +686,7 @@ reinstall_all_rpms() {
   # will be used for appending the result to `grep -Ev [...]` and will work
   # even if the variable is nonexistent.
   if [ -n "$path_to_internal_repo_file" ]; then
-    internal_repo_pattern="|$(grep -oP '\[\K[^\]]+' \"$path_to_internal_repo_file\" | xargs echo | sed 's/ /|/g')"
+    internal_repo_pattern="|$(grep -oP '\[\K[^\]]+' "$path_to_internal_repo_file" | xargs echo | sed 's/ /|/g')"
   fi
 
   # Query all packages and their metadata such as their Vendor. The result of
