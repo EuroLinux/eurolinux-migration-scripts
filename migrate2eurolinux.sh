@@ -10,6 +10,7 @@ beginning_preparations() {
   declare el_euroman_password
   declare preserve="false"
   declare path_to_internal_repo_file
+  declare skip_verification="false"
 
   github_url="https://github.com/EuroLinux/eurolinux-migration-scripts"
   # These are all the packages we need to remove. Some may not reside in
@@ -27,6 +28,7 @@ usage() {
     echo "-f      Skip warning messages"
     echo "-h      Display this help and exit"
     echo "-r      Use a custom .repo file (for offline migration)"
+    echo "-v      Don't verify RPMs"
     echo
     echo "OPTIONS applicable to Enterprise Linux 7 or older"
     echo "-u      Your EuroMan username (usually an email address)"
@@ -74,11 +76,13 @@ final_failure() {
 generate_rpms_info() {
   # Generate an RPM database log and a list of RPMs installed on your system
   # at any point in time.
-  # $1 - before/after (a migration)
-  echo "Creating a list of RPMs installed $1 the switch..."
-  rpm -qa --qf "%{NAME}-%{EPOCH}:%{VERSION}-%{RELEASE}.%{ARCH}|%{INSTALLTIME}|%{VENDOR}|%{BUILDTIME}|%{BUILDHOST}|%{SOURCERPM}|%{LICENSE}|%{PACKAGER}\n" | sed 's/(none)://g' | sort > "/var/tmp/$(hostname)-rpms-list-$1.log"
-  echo "Verifying RPMs installed $1 the switch against RPM database..."
-  rpm -Va | sort -k3 > "/var/tmp/$(hostname)-rpms-verified-$1.log"
+  if [ "$skip_verification" != "true" ]; then
+    # $1 - before/after (a migration)
+    echo "Creating a list of RPMs installed $1 the switch..."
+    rpm -qa --qf "%{NAME}-%{EPOCH}:%{VERSION}-%{RELEASE}.%{ARCH}|%{INSTALLTIME}|%{VENDOR}|%{BUILDTIME}|%{BUILDHOST}|%{SOURCERPM}|%{LICENSE}|%{PACKAGER}\n" | sed 's/(none)://g' | sort > "/var/tmp/$(hostname)-rpms-list-$1.log"
+    echo "Verifying RPMs installed $1 the switch against RPM database..."
+    rpm -Va | sort -k3 > "/var/tmp/$(hostname)-rpms-verified-$1.log"
+  fi
 }
 
 check_root() {
@@ -121,7 +125,6 @@ check_distro() {
 }
 
 verify_rpms_before_migration() {
-  echo "Collecting information about RPMs before the switch..."
   generate_rpms_info before
 }
 
@@ -745,10 +748,11 @@ remove_leftovers() {
 }
 
 verify_generated_rpms_info() {
-  echo "Collecting information about RPMs after the switch..."
   generate_rpms_info after
-  echo "Review the output of following files:"
-  find /var/tmp/ -type f -name "$(hostname)-rpms-*.log"
+  if [ "$skip_verification" != "true" ]; then
+    echo "Review the output of following files:"
+    find /var/tmp/ -type f -name "$(hostname)-rpms-*.log"
+  fi
 }
 
 congratulations() {
@@ -798,6 +802,7 @@ while getopts "bfhp:r:u:" option; do
         p) el_euroman_password="$OPTARG" ;;
         r) path_to_internal_repo_file="$OPTARG" ;;
         u) el_euroman_user="$OPTARG" ;;
+        v) skip_verification="true"
         *) usage ;;
     esac
 done
