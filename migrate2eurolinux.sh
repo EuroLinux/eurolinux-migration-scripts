@@ -794,7 +794,7 @@ main() {
   congratulations
 }
 
-while getopts "bfhp:r:u:" option; do
+while getopts "bfhp:r:u:v" option; do
     case "$option" in
         b) preserve="true" ;;
         f) skip_warning="true" ;;
@@ -802,7 +802,7 @@ while getopts "bfhp:r:u:" option; do
         p) el_euroman_password="$OPTARG" ;;
         r) path_to_internal_repo_file="$OPTARG" ;;
         u) el_euroman_user="$OPTARG" ;;
-        v) skip_verification="true"
+        v) skip_verification="true" ;;
         *) usage ;;
     esac
 done
