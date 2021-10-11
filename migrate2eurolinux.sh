@@ -442,6 +442,7 @@ print(my_org)
 }
 
 disable_distro_repos() {
+
   # Remove all non-Eurolinux .repo files unless the 'preserve' option has been
   # provided. If it was, then here's a summary of the function's logic:
   # Different distros provide their repositories in different ways. There may
@@ -516,6 +517,7 @@ EOF
     done < repo_files
     trap - ERR
   fi
+
 }
 
 remove_centos_yum_branding() {
