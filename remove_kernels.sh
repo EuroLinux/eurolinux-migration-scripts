@@ -142,7 +142,6 @@ prepare_systemd_service() {
   cat > "/etc/systemd/system/remove-non-eurolinux-kernels.service" <<-EOF
 [Unit]
 Description=Remove non-EuroLinux kernels and kernel-related packages
-SuccessAction=reboot
 
 [Service]
 Type=oneshot
