@@ -50,9 +50,13 @@ You can specify several parameters:
   running non-interactively.
 - `-u` to specify your EuroMan username
 - `-p` to specify your EuroMan password
+- `-r` to use your custom .repo file which points to your own local EuroLinux
+  mirror
 
 EuroMan is applicable only to releases lower than 8 and if the credentials are
-provided for release 8, the script won't use them.
+provided for release 8, the script won't use them. The same applies when using
+the `-r` option since it's assumed that you have a valid registration if you
+appear to have EuroLinux packages mirrored locally.
 
 Sample non-interactive usage:
 
@@ -74,20 +78,16 @@ especially those installed from third-party repositories. In order to remove
 it and related packages such as *kernel-devel*, *kernel-headers*, etc. an
 additional script has been created: *remove_kernels.sh*.
 
-Once the migration has been completed, you are recommended to reboot your
-system and only then the *remove_kernels.sh* script shall be launched.
-
-The script will proceed  only if it is certain a system has already
-successfully migrated to EuroLinux. The default behavior is to remove
-everything that is not provided by EuroLinux but the user can specify, if they
+The script will be launched automatically if a system has already successfully
+migrated to EuroLinux. The default behavior is to remove everything that is not
+provided by EuroLinux but if running manually, the user can specify, if they
 want to remove only the kernels their old distro provided or all non-EuroLinux
 kernels and related packages - those from third-party repositories among
 others. Or if they want to perform a dry-run for listing, what would happen.
 
 Once the answer is present, a systemd service will be created and enabled - it
 will remove the specified packages on next system boot, perform a bootloader
-update, disable itself and reboot the machine to ensure no leftovers are
-present.
+update and disable itself to ensure no leftovers are present.
 
 ## Tests
 
