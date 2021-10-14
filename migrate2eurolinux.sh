@@ -12,6 +12,7 @@ beginning_preparations() {
   declare path_to_internal_repo_file
   declare skip_verification="false"
 
+  script_dir="$(dirname $(readlink -f $0))"
   github_url="https://github.com/EuroLinux/eurolinux-migration-scripts"
   # These are all the packages we need to remove. Some may not reside in
   # this array since they'll be swapped later on once EuroLinux
@@ -759,7 +760,7 @@ verify_generated_rpms_info() {
 
 remove_all_non_eurolinux_kernels_and_related_packages() {
   echo "Running ./remove_kernels.sh..."
-  cd "$(dirname $(readlink -f $0))"
+  cd "$script_dir"
   ./remove_kernels.sh
 }
 
