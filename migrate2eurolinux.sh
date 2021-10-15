@@ -174,6 +174,13 @@ check_yum_lock() {
   fi
 }
 
+backup_internal_repo_file() {
+  if [ -n "$path_to_internal_repo_file" ]; then
+    cp "$path_to_internal_repo_file" "/root/${path_to_internal_repo_file##*/}"
+    path_to_internal_repo_file="/root/${path_to_internal_repo_file##*/}"
+  fi
+}
+
 check_systemwide_python() {
   # This script has an embedded Python code for several operations that are
   # expressed better that way rather than via a shell. It will need a Python
@@ -784,6 +791,7 @@ main() {
   check_supported_releases
   prepare_pre_migration_environment
   check_yum_lock
+  backup_internal_repo_file
   check_systemwide_python
   get_branded_modules
   find_repos_directory
