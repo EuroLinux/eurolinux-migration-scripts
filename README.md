@@ -20,7 +20,9 @@ The following distributions are supported on the x86_64 architecture:
 - Scientific Linux 7
 
 The distributions must be up to date and only their latest minor release is
-supported.
+supported.  
+Additionally, if a system has been installed with Secure Boot enabled,
+make sure that it is disabled first before running the script.
 
 ## Preparations
 
