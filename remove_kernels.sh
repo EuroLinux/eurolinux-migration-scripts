@@ -74,7 +74,7 @@ prepare_list_of_kernels_to_be_removed() {
   mapfile -t all_non_eurolinux_kernel_packages < \
     <(printf -- '%s\n' "${installed_kernel_packages[@]}" | grep -Ev 'EuroLinux|Scientific' | sed 's@\ @\_@g')
   mapfile -t migratable_distros_kernel_packages < \
-    <(printf -- '%s\n' ${all_non_eurolinux_kernel_packages[@]} | grep -E 'Red.Hat|CentOS|Oracle|Rocky|Alma' | sed 's@\ @\_@g')
+    <(printf -- '%s\n' ${all_non_eurolinux_kernel_packages[@]} | grep -E 'Red.Hat|CentOS|Oracle|Rocky|Alma|\(none\)' | sed 's@\ @\_@g')
   echo "The following non-EuroLinux kernel packages are still remaining:"
   [ ${#migratable_distros_kernel_packages[@]} -eq 0 ] && echo 'none, nothing to do, exiting.' && exit 0
   printf -- '%s\n' "${all_non_eurolinux_kernel_packages[@]}"
