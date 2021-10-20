@@ -1,4 +1,4 @@
-def machine_names = ["almalinux8" "centos8" "oracle8" "rockylinux8"]
+def machine_names = ["almalinux8", "centos8", "oracle8", "rockylinux8"]
 
 pipeline {
     agent any
