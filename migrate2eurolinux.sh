@@ -677,11 +677,13 @@ debrand_modules() {
 deal_with_problematic_rpms() {
   # Some RPMs are either not covered by 'replaces' metadata or couldn't be
   # replaced earlier. This part takes care of all of them.
-  if [[ "$(rpm -qa '*-logos-ipa')" ]]; then
+  # In some cases these can be replaced automatically but until additional
+  # tests have been performed, this logic is kept here.
+  if [[ "$(rpm -qa '*-logos-ipa' | grep -v 'el-logos-ipa')" ]]; then
     yum swap -y "*-logos-ipa" "el-logos-ipa"
   fi
 
-  if [[ "$(rpm -qa '*-logos-httpd')" ]]; then
+  if [[ "$(rpm -qa '*-logos-httpd' | grep -v 'el-logos-httpd')" ]]; then
     yum swap -y "*-logos-httpd" "el-logos-httpd"
   fi
 
