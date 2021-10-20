@@ -12,6 +12,7 @@ pipeline {
                 script{ 
                     parallel machine_names.collectEntries { vagrant_machine -> [ "${vagrant_machine}": {
                             stage("$vagrant_machine") {
+                                sh("vagrant up $vagrant_machine")
                                 sh("vagrant ssh $vagrant_machine -c 'sudo /vagrant/migrate2eurolinux.sh -f -v && sudo reboot' || true")
                                 sh("echo 'Waiting 5 minutes for the box to warm up and for the kernel-removing systemd service to finish its job...'")
                                 sh("sleep 300")
