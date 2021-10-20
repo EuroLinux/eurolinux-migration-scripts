@@ -1,7 +1,11 @@
 def machine_names = ["almalinux8", "centos8", "oracle8", "rockylinux8"]
 
 pipeline {
-    agent any
+    agent {
+        node {
+          label 'libvirt'
+        }
+    }
     stages {
         stage("Migrate supported systems on Vagrant machines to EuroLinux"){
             steps{
