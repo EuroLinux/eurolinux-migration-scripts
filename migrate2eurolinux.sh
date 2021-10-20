@@ -456,7 +456,8 @@ remove_distro_gpg_pubkey() {
   bad_providers=('packager@almalinux.org' 'security@centos.org' 'build@oss.oracle.com' 'security@redhat.com' 'infrastructure@rockylinux.org' 'scientific-linux-devel@fnal.gov')
   keys="$(rpm -qa --qf '%{nevra} %{packager}\n' gpg-pubkey*)"
   for provider in ${bad_providers[*]} ; do
-    grep -i $provider <<< "$keys" | cut -d' ' -f 1 | xargs rpm -e
+    echo "Checking for the existence of gpg-pubkey provider: $provider..."
+    grep -i $provider <<< "$keys" | cut -d' ' -f 1 | xargs rpm -e || true
   done
 }
 
