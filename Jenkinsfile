@@ -8,6 +8,7 @@ pipeline {
     }
     environment {
         EUROMAN_CREDENTIALS = credentials('53f788db-5d13-45de-9f1a-a142f8400e77')
+        VAGRANT_BOX_RHEL7_URL = credentials('VAGRANT_BOX_RHEL7_URL')
     }
     stages {
         stage("Migrate supported systems on Vagrant machines to EuroLinux"){
