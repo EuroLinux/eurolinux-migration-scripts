@@ -453,7 +453,7 @@ remove_distro_gpg_pubkey() {
   # distros we're migrating from are removed and only these. As of today the
   # solution is to have an array with their emails and make sure the
   # corresponding pubkeys are removed.
-  bad_providers=('packager@almalinux.org' 'security@centos.org' 'build@oss.oracle.com' 'security@redhat.com' 'infrastructure@rockylinux.org' 'scientific-linux-devel@fnal.gov')
+  bad_providers=('packager@almalinux.org' 'security@centos.org' 'build@oss.oracle.com' 'security@redhat.com' 'infrastructure@rockylinux.org' 'scientific-linux-devel@fnal.gov' 'epel@fedoraproject.org' '@elrepo.org')
   keys="$(rpm -qa --qf '%{nevra} %{packager}\n' gpg-pubkey*)"
   for provider in ${bad_providers[*]} ; do
     echo "Checking for the existence of gpg-pubkey provider: $provider..."
@@ -727,7 +727,7 @@ reinstall_all_rpms() {
   # two lines rather than one due to their long filename - the output is
   # modified via `sed` to deal with this curiosity.
   mapfile -t non_eurolinux_rpms_from_yum_list < <(yum list installed | sed '/^[^@]*$/{N;s/\n//}' | grep -Ev '@el-server-|@euroman|@fbi|@certify'"$internal_repo_pattern" | grep '@' | cut -d' ' -f 1 | cut -d'.' -f 1)
-  mapfile -t non_eurolinux_rpms_and_metadata < <(rpm -qa --qf "%{NEVRA}|%{VENDOR}|%{PACKAGER}\n" ${non_eurolinux_rpms_from_yum_list[*]} | grep -Ev 'EuroLinux|Scientific') 
+  mapfile -t non_eurolinux_rpms_and_metadata < <(rpm -qa --qf "%{NEVRA}|%{VENDOR}|%{PACKAGER}\n" ${non_eurolinux_rpms_from_yum_list[*]} | grep -Ev 'EuroLinux|Scientific' | sed 's@\ @\_@g') 
   if [[ -n "${non_eurolinux_rpms_and_metadata[*]}" ]]; then
     echo "The following non-EuroLinux RPMs are installed on the system:"
     printf '\t%s\n' "${non_eurolinux_rpms_and_metadata[@]}"
@@ -737,7 +737,7 @@ reinstall_all_rpms() {
       echo "Removing these packages (except those kernel-related) automatically..."
       non_eurolinux_rpms_and_metadata_without_kernel_related=( ${non_eurolinux_rpms_and_metadata[@]/kernel*/} )
       if [ ${#non_eurolinux_rpms_and_metadata_without_kernel_related[@]} -gt 0 ]; then
-        yum remove-nevra -y ${non_eurolinux_rpms_and_metadata_without_kernel_related[@]%%|*}
+        yum remove -y ${non_eurolinux_rpms_and_metadata_without_kernel_related[@]%%|*}
       else
         echo "(no need to remove anything)"
       fi
