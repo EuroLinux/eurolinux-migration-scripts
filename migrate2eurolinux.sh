@@ -152,12 +152,17 @@ prepare_pre_migration_environment() {
   # Determine the exact details a distro exposes to perform a migration
   # successfully - some distros and their releases will need different
   # approaches and tweaks. Store these details for later use.
+  # Delete some popular third-party repos' packages unless the 'preserve'
+  # option has been specified.
   os_version=$(rpm -q "${old_release}" --qf "%{version}")
   major_os_version=${os_version:0:1}
   base_packages=(basesystem el-logos el-release grub2 grubby initscripts plymouth)
   if [[ "$old_release" =~ oraclelinux-release-(el)?[78] ]] ; then
     echo "Oracle Linux detected - unprotecting systemd temporarily for distro-sync to succeed..."
     mv /etc/yum/protected.d/systemd.conf /etc/yum/protected.d/systemd.conf.bak
+  fi
+  if [ "$preserve" != "true" ]; then
+    bad_packages+=( elrepo-release epel-release )
   fi
 }
 
@@ -726,8 +731,10 @@ reinstall_all_rpms() {
   # When listing packages with `yum`, there may be a few which are listed with
   # two lines rather than one due to their long filename - the output is
   # modified via `sed` to deal with this curiosity.
+  # To complicate things even further, two packages (rhnlib and rhnsd)
+  # are not branded. They are excluded from the non-EuroLinux RPM list.
   mapfile -t non_eurolinux_rpms_from_yum_list < <(yum list installed | sed '/^[^@]*$/{N;s/\n//}' | grep -Ev '@el-server-|@euroman|@fbi|@certify'"$internal_repo_pattern" | grep '@' | cut -d' ' -f 1 | cut -d'.' -f 1)
-  mapfile -t non_eurolinux_rpms_and_metadata < <(rpm -qa --qf "%{NEVRA}|%{VENDOR}|%{PACKAGER}\n" ${non_eurolinux_rpms_from_yum_list[*]} | grep -Ev 'EuroLinux|Scientific' | sed 's@\ @\_@g') 
+  mapfile -t non_eurolinux_rpms_and_metadata < <(rpm -qa --qf "%{NEVRA}|%{VENDOR}|%{PACKAGER}\n" ${non_eurolinux_rpms_from_yum_list[*]} | grep -Ev 'EuroLinux|Scientific' | sed 's@\ @\_@g' | grep -Ev '^(rhnlib|rhnsd).+\|\(none\)\|\(none\)$') 
   if [[ -n "${non_eurolinux_rpms_and_metadata[*]}" ]]; then
     echo "The following non-EuroLinux RPMs are installed on the system:"
     printf '\t%s\n' "${non_eurolinux_rpms_and_metadata[@]}"
