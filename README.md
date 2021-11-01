@@ -45,15 +45,15 @@ bash migrate2eurolinux.sh
 
 You can specify several parameters:
 
-- `-b` to preserve several non-EuroLinux components such as packages from
-  unofficial repositories, disabled and backed-up .repo files from your
-  current distribution, etc. rather than cleaning them up.
 - `-f` to skip a warning message about backup recommendation. Necessary for
   running non-interactively.
 - `-u` to specify your EuroMan username
 - `-p` to specify your EuroMan password
 - `-r` to use your custom .repo file which points to your own local EuroLinux
   mirror
+- `-w` to remove all detectable non-EuroLinux components such as packages from
+  unofficial repositories, .repo files from your current distribution, etc. 
+  rather than preserving them
 
 EuroMan is applicable only to releases lower than 8 and if the credentials are
 provided for release 8, the script won't use them. The same applies when using
