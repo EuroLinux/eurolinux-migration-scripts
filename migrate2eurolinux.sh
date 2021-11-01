@@ -8,7 +8,7 @@ beginning_preparations() {
   unset CDPATH
   declare el_euroman_user
   declare el_euroman_password
-  declare preserve="false"
+  declare preserve="true"
   declare path_to_internal_repo_file
   declare skip_verification="false"
 
@@ -24,12 +24,12 @@ usage() {
     echo "Usage: ${0##*/} [OPTIONS]"
     echo
     echo "OPTIONS"
-    echo "-b      Preserve some non-EuroLinux extras (e.g. third-party"
-    echo "        repositories and backed-up .repo files)"
     echo "-f      Skip warning messages"
     echo "-h      Display this help and exit"
     echo "-r      Use a custom .repo file (for offline migration)"
     echo "-v      Don't verify RPMs"
+    echo "-w      Remove all detectable non-EuroLinux extras"
+    echo "        (e.g. third-party repositories and backed-up .repo files)"
     echo
     echo "OPTIONS applicable to Enterprise Linux 7 or older"
     echo "-u      Your EuroMan username (usually an email address)"
@@ -839,15 +839,15 @@ main() {
   congratulations
 }
 
-while getopts "bfhp:r:u:v" option; do
+while getopts "fhp:r:u:vw" option; do
     case "$option" in
-        b) preserve="true" ;;
         f) skip_warning="true" ;;
         h) usage ;;
         p) el_euroman_password="$OPTARG" ;;
         r) path_to_internal_repo_file="$OPTARG" ;;
         u) el_euroman_user="$OPTARG" ;;
         v) skip_verification="true" ;;
+        w) preserve="false" ;;
         *) usage ;;
     esac
 done
