@@ -454,16 +454,23 @@ print(my_org)
 }
 
 remove_distro_gpg_pubkey() {
-  # We need to make sure only the pubkeys of the vendors that provide the
-  # distros we're migrating from are removed and only these. As of today the
-  # solution is to have an array with their emails and make sure the
-  # corresponding pubkeys are removed.
-  bad_providers=('packager@almalinux.org' 'security@centos.org' 'build@oss.oracle.com' 'security@redhat.com' 'infrastructure@rockylinux.org' 'scientific-linux-devel@fnal.gov' 'epel@fedoraproject.org' '@elrepo.org')
   keys="$(rpm -qa --qf '%{nevra} %{packager}\n' gpg-pubkey*)"
-  for provider in ${bad_providers[*]} ; do
-    echo "Checking for the existence of gpg-pubkey provider: $provider..."
-    grep -i $provider <<< "$keys" | cut -d' ' -f 1 | xargs rpm -e || true
-  done
+  if [ "$preserve" == "true" ]; then
+    # We need to make sure only the pubkeys of the vendors that provide the
+    # distros we're migrating from are removed and only these. As of today the
+    # solution is to have an array with their emails and make sure the
+    # corresponding pubkeys are removed.
+    bad_providers=('packager@almalinux.org' 'security@centos.org' 'build@oss.oracle.com' 'security@redhat.com' 'infrastructure@rockylinux.org' 'scientific-linux-devel@fnal.gov' )
+    for provider in ${bad_providers[*]} ; do
+      echo "Checking for the existence of gpg-pubkey provider: $provider..."
+      grep -i $provider <<< "$keys" | cut -d' ' -f 1 | xargs rpm -e || true
+    done
+  else
+    # On the other hand if we want to remove everything not related to
+    # EuroLinux, remove all of these keys unless they end with
+    # '@euro-linux.com'
+    grep -v '@euro-linux.com' <<< "$keys" | cut -d' ' -f 1 | xargs rpm -e || true
+  fi
 }
 
 disable_distro_repos() {
