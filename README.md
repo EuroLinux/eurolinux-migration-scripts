@@ -75,10 +75,10 @@ bash -x migrate2eurolinux.sh -f -u 'user@example.com' -p 'password123' | tee -a 
 ### Removing distro-provided kernel
 
 Once the script has finished, there will still be a distro-provided kernel
-running and maybe some other ones if you ran the script with the `-b` option -
-especially those installed from third-party repositories. In order to remove
-it and related packages such as *kernel-devel*, *kernel-headers*, etc. an
-additional script has been created: *remove_kernels.sh*.
+running and maybe some other ones if you ran the script without the `-w`
+option - especially those installed from third-party repositories. In order to
+remove it and related packages such as *kernel-devel*, *kernel-headers*, etc.
+an additional script has been created: *remove_kernels.sh*.
 
 The script will be launched automatically if a system has already successfully
 migrated to EuroLinux. The default behavior is to remove everything that is not
