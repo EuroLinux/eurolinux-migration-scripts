@@ -794,19 +794,18 @@ verify_generated_rpms_info() {
   fi
 }
 
-remove_all_non_eurolinux_kernels_and_related_packages() {
-  echo "Running ./remove_kernels.sh..."
+remove_kernels_and_related_packages() {
+  # The answer on what to remove
+  # See the remove_kernels.sh's usage() for more information.
+  [ "$preserve" == "true" ] && removal_answer=3 || removal_answer=2
+  echo "Running ./remove_kernels.sh -a $removal_answer..."
   cd "$script_dir"
-  ./remove_kernels.sh
+  ./remove_kernels.sh -a $removal_answer
 }
 
 congratulations() {
-  echo "Switch complete."
-  echo "EuroLinux recommends rebooting this system."
-  echo "Once the system is rebooted, there will still be the current kernel
-listed as a bootloader entry. That is the expected behavior - it will be
-removed automatically along with its related packages once the system has
-finished booting using the EuroLinux kernel."
+  echo "Switch almost complete. EuroLinux recommends rebooting this system.
+Once booted up, a background service will perform a further kernel removal."
 }
 
 main() {
@@ -842,7 +841,7 @@ main() {
   update_grub
   remove_leftovers
   verify_generated_rpms_info
-  remove_all_non_eurolinux_kernels_and_related_packages
+  remove_kernels_and_related_packages
   congratulations
 }
 

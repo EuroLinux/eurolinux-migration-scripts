@@ -153,8 +153,7 @@ WantedBy=multi-user.target
 EOF
 
   systemctl enable remove-non-eurolinux-kernels.service && \
-    echo "Kernel removal will be performed on next system boot."
-    echo "Additionally a GRUB2 update will be performed along with an automatic system reboot"
+    echo "Kernel removal and a GRUB2 update will be performed on next system boot."
 }
 
 main() {
