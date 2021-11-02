@@ -757,9 +757,8 @@ reinstall_all_rpms() {
 update_grub() {
   # Update bootloader entries. Output to a symlink which always points to the
   # proper configuration file.
-  printf "Updating the GRUB2 bootloader at: "
   [ -d /sys/firmware/efi ] && grub2_conf="/etc/grub2-efi.cfg" || grub2_conf="/etc/grub2.cfg"
-  printf "$grub2_conf (symlinked to $(readlink $grub2_conf)).\n"
+  echo "Updating the GRUB2 bootloader at $grub2_conf (symlinked to $(readlink $grub2_conf))."
   grub2-mkconfig -o "$grub2_conf"
 }
 
