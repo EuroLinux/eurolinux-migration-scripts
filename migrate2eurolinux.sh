@@ -6,11 +6,6 @@
 beginning_preparations() {
   set -e
   unset CDPATH
-  declare el_euroman_user
-  declare el_euroman_password
-  declare preserve="true"
-  declare path_to_internal_repo_file
-  declare skip_verification="false"
 
   script_dir="$(dirname $(readlink -f $0))"
   github_url="https://github.com/EuroLinux/eurolinux-migration-scripts"
@@ -844,6 +839,9 @@ main() {
   remove_kernels_and_related_packages
   congratulations
 }
+
+declare preserve="true"
+declare skip_verification="false"
 
 while getopts "fhp:r:u:vw" option; do
     case "$option" in
