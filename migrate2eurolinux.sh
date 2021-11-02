@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 # Initially based on Oracle's centos2ol script. Thus licensed under the Universal Permissive License v1.0
 # Copyright (c) 2020, 2021 Oracle and/or its affiliates.
 # Copyright (c) 2021 EuroLinux
@@ -147,17 +147,12 @@ prepare_pre_migration_environment() {
   # Determine the exact details a distro exposes to perform a migration
   # successfully - some distros and their releases will need different
   # approaches and tweaks. Store these details for later use.
-  # Delete some popular third-party repos' packages unless the 'preserve'
-  # option has been specified.
   os_version=$(rpm -q "${old_release}" --qf "%{version}")
   major_os_version=${os_version:0:1}
   base_packages=(basesystem el-logos el-release grub2 grubby initscripts plymouth)
   if [[ "$old_release" =~ oraclelinux-release-(el)?[78] ]] ; then
     echo "Oracle Linux detected - unprotecting systemd temporarily for distro-sync to succeed..."
     mv /etc/yum/protected.d/systemd.conf /etc/yum/protected.d/systemd.conf.bak
-  fi
-  if [ "$preserve" != "true" ]; then
-    bad_packages+=( elrepo-release epel-release )
   fi
 }
 
@@ -565,7 +560,8 @@ fix_oracle_shenanigans() {
   #
   # Some Oracle Linux exclusive packages with no equivalents will be removed
   # as well.
-  if [[ "$(rpm -qa 'oraclelinux-release-el*')" ]]; then
+  if [[ "$old_release" =~ oracle ]]; then
+    echo "Dealing with Oracle Linux curiosities..."
     rpm -e --nodeps $(rpm -qa | grep "oracle")
     yum downgrade -y yum
     yum downgrade -y $(for suffixable in $(rpm -qa | egrep "\.0\.[1-9]\.el") ; do rpm -q $suffixable --qf '%{NAME}\n' ; done)
@@ -587,17 +583,22 @@ force_el_release() {
   if ! command -v yumdownloader; then
     case "$os_version" in
         8*)
-          : # Already provided my dnf, skipping
+          : # 'yum-utils' already provided my dnf, skipping
           dnf download el-release
           ;;
         7*)
-          echo "Looking for yymdownloader..."
+          echo "Looking for yumdownloader..."
           yum -y install yum-utils
           yum download el-release
           dep_check yumdownloader
           ;;
     esac
-    for i in ${bad_packages[@]} ; do rpm -e --nodeps $i || true ; done
+#    if [ "$preserve" != "true" ]; then
+#      # Delete third-party repos' packages as well unless the 'preserve'
+#      # option has been specified.
+#      bad_packages+=( "$(rpm -qf /etc/yum.repos.d/*.repo --qf '%{name}\n' | sort -u | grep -v '^el-release' | tr '\n' ' ')" )
+#    fi
+    for i in "${bad_packages[@]}" ; do rpm -e --nodeps "$i" || true ; done
 
     # Additional tweak for RHEL 8 - remove these directories manually.
     # Otherwise an error will show up:
