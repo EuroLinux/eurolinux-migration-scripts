@@ -127,9 +127,8 @@ set_latest_eurolinux_kernel() {
 update_grub() {
   # Update bootloader entries. Output to a symlink which always points to the
   # proper configuration file.
-  printf "Updating the GRUB2 bootloader at: "
   [ -d /sys/firmware/efi ] && grub2_conf="/etc/grub2-efi.cfg" || grub2_conf="/etc/grub2.cfg"
-  printf "$grub2_conf (symlinked to $(readlink $grub2_conf)).\n"
+  echo "Updating the GRUB2 bootloader at $grub2_conf (symlinked to $(readlink $grub2_conf))."
   grub2-mkconfig -o "$grub2_conf"
 }
 
@@ -153,8 +152,7 @@ WantedBy=multi-user.target
 EOF
 
   systemctl enable remove-non-eurolinux-kernels.service && \
-    echo "Kernel removal will be performed on next system boot."
-    echo "Additionally a GRUB2 update will be performed along with an automatic system reboot"
+    echo "Kernel removal and a GRUB2 update will be performed on next system boot."
 }
 
 main() {

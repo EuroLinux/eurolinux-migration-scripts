@@ -45,15 +45,15 @@ bash migrate2eurolinux.sh
 
 You can specify several parameters:
 
-- `-b` to preserve several non-EuroLinux components such as packages from
-  unofficial repositories, disabled and backed-up .repo files from your
-  current distribution, etc. rather than cleaning them up.
 - `-f` to skip a warning message about backup recommendation. Necessary for
   running non-interactively.
 - `-u` to specify your EuroMan username
 - `-p` to specify your EuroMan password
 - `-r` to use your custom .repo file which points to your own local EuroLinux
   mirror
+- `-w` to remove all detectable non-EuroLinux components such as packages from
+  unofficial repositories, .repo files from your current distribution, etc. 
+  rather than preserving them
 
 EuroMan is applicable only to releases lower than 8 and if the credentials are
 provided for release 8, the script won't use them. The same applies when using
@@ -75,15 +75,17 @@ bash -x migrate2eurolinux.sh -f -u 'user@example.com' -p 'password123' | tee -a 
 ### Removing distro-provided kernel
 
 Once the script has finished, there will still be a distro-provided kernel
-running and maybe some other ones if you ran the script with the `-b` option -
-especially those installed from third-party repositories. In order to remove
-it and related packages such as *kernel-devel*, *kernel-headers*, etc. an
+running (assuming that's the one being in use when running the migration
+script) and maybe some other ones if you ran the script without the `-w` option
+- especially those installed from third-party repositories. In order to remove
+  it and related packages such as *kernel-devel*, *kernel-headers*, etc. an
 additional script has been created: *remove_kernels.sh*.
 
 The script will be launched automatically if a system has already successfully
-migrated to EuroLinux. The default behavior is to remove everything that is not
-provided by EuroLinux but if running manually, the user can specify, if they
-want to remove only the kernels their old distro provided or all non-EuroLinux
+migrated to EuroLinux. That **standalone script's** default behavior is to
+remove everything that is not provided by EuroLinux but if running manually or
+via migrate2linux.sh with the `-w` option, the user can specify, if they want
+to remove only the kernels their old distro provided or all non-EuroLinux
 kernels and related packages - those from third-party repositories among
 others. Or if they want to perform a dry-run for listing, what would happen.
 

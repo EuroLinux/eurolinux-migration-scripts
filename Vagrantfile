@@ -30,10 +30,12 @@ Vagrant.configure("2") do |config|
     i.vm.hostname = "oracle8"
   end
 
-  #config.vm.define "rhel7" do |i|
-  #  i.vm.box = #"redacted"
-  #  i.vm.hostname = "rhel7"
-  #end
+  config.vm.define "rhel7" do |i|
+    i.vm.box = "rhel7"
+    i.vm.box_download_insecure = true
+    i.vm.box_url = ENV['VAGRANT_BOX_RHEL7_URL']
+    i.vm.hostname = "rhel7"
+  end
 
   #config.vm.define "rhel8" do |i|
   #  i.vm.box = #"redacted"

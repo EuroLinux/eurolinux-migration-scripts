@@ -6,11 +6,6 @@
 beginning_preparations() {
   set -e
   unset CDPATH
-  declare el_euroman_user
-  declare el_euroman_password
-  declare preserve="false"
-  declare path_to_internal_repo_file
-  declare skip_verification="false"
 
   script_dir="$(dirname $(readlink -f $0))"
   github_url="https://github.com/EuroLinux/eurolinux-migration-scripts"
@@ -24,12 +19,12 @@ usage() {
     echo "Usage: ${0##*/} [OPTIONS]"
     echo
     echo "OPTIONS"
-    echo "-b      Preserve some non-EuroLinux extras (e.g. third-party"
-    echo "        repositories and backed-up .repo files)"
     echo "-f      Skip warning messages"
     echo "-h      Display this help and exit"
     echo "-r      Use a custom .repo file (for offline migration)"
     echo "-v      Don't verify RPMs"
+    echo "-w      Remove all detectable non-EuroLinux extras"
+    echo "        (e.g. third-party repositories and backed-up .repo files)"
     echo
     echo "OPTIONS applicable to Enterprise Linux 7 or older"
     echo "-u      Your EuroMan username (usually an email address)"
@@ -158,6 +153,11 @@ prepare_pre_migration_environment() {
   if [[ "$old_release" =~ oraclelinux-release-(el)?[78] ]] ; then
     echo "Oracle Linux detected - unprotecting systemd temporarily for distro-sync to succeed..."
     mv /etc/yum/protected.d/systemd.conf /etc/yum/protected.d/systemd.conf.bak
+  fi
+  if [ "$preserve" != "true" ]; then
+    # Delete third-party repos' packages as well unless the 'preserve'
+    # option has been specified.
+    bad_packages+=( "$(rpm -qf /etc/yum.repos.d/*.repo --qf '%{name}\n' | sort -u | grep -v '^el-release' | tr '\n' ' ')" )
   fi
 }
 
@@ -448,6 +448,26 @@ print(my_org)
   fi
 }
 
+remove_distro_gpg_pubkey() {
+  keys="$(rpm -qa --qf '%{nevra} %{packager}\n' gpg-pubkey*)"
+  if [ "$preserve" == "true" ]; then
+    # We need to make sure only the pubkeys of the vendors that provide the
+    # distros we're migrating from are removed and only these. As of today the
+    # solution is to have an array with their emails and make sure the
+    # corresponding pubkeys are removed.
+    bad_providers=('packager@almalinux.org' 'security@centos.org' 'build@oss.oracle.com' 'security@redhat.com' 'infrastructure@rockylinux.org' 'scientific-linux-devel@fnal.gov' )
+    for provider in ${bad_providers[*]} ; do
+      echo "Checking for the existence of gpg-pubkey provider: $provider..."
+      grep -i $provider <<< "$keys" | cut -d' ' -f 1 | xargs rpm -e || true
+    done
+  else
+    # On the other hand if we want to remove everything not related to
+    # EuroLinux, remove all of these keys unless they end with
+    # '@euro-linux.com'
+    grep -v '@euro-linux.com' <<< "$keys" | cut -d' ' -f 1 | xargs rpm -e || true
+  fi
+}
+
 disable_distro_repos() {
 
   # Remove all non-Eurolinux .repo files unless the 'preserve' option has been
@@ -545,7 +565,8 @@ fix_oracle_shenanigans() {
   #
   # Some Oracle Linux exclusive packages with no equivalents will be removed
   # as well.
-  if [[ "$(rpm -qa 'oraclelinux-release-el*')" ]]; then
+  if [[ "$old_release" =~ oracle ]]; then
+    echo "Dealing with Oracle Linux curiosities..."
     rpm -e --nodeps $(rpm -qa | grep "oracle")
     yum downgrade -y yum
     yum downgrade -y $(for suffixable in $(rpm -qa | egrep "\.0\.[1-9]\.el") ; do rpm -q $suffixable --qf '%{NAME}\n' ; done)
@@ -567,17 +588,17 @@ force_el_release() {
   if ! command -v yumdownloader; then
     case "$os_version" in
         8*)
-          : # Already provided my dnf, skipping
+          : # 'yum-utils' already provided my dnf, skipping
           dnf download el-release
           ;;
         7*)
-          echo "Looking for yymdownloader..."
+          echo "Looking for yumdownloader..."
           yum -y install yum-utils
           yum download el-release
           dep_check yumdownloader
           ;;
     esac
-    for i in ${bad_packages[@]} ; do rpm -e --nodeps $i || true ; done
+    for i in "${bad_packages[@]}" ; do rpm -e --nodeps "$i" || true ; done
 
     # Additional tweak for RHEL 8 - remove these directories manually.
     # Otherwise an error will show up:
@@ -589,7 +610,7 @@ force_el_release() {
     fi
 
     rpm -i --force el-release*
-fi
+  fi
 }
 
 install_el_base() {
@@ -664,11 +685,13 @@ debrand_modules() {
 deal_with_problematic_rpms() {
   # Some RPMs are either not covered by 'replaces' metadata or couldn't be
   # replaced earlier. This part takes care of all of them.
-  if [[ "$(rpm -qa '*-logos-ipa')" ]]; then
+  # In some cases these can be replaced automatically but until additional
+  # tests have been performed, this logic is kept here.
+  if [[ "$(rpm -qa '*-logos-ipa' | grep -v 'el-logos-ipa')" ]]; then
     yum swap -y "*-logos-ipa" "el-logos-ipa"
   fi
 
-  if [[ "$(rpm -qa '*-logos-httpd')" ]]; then
+  if [[ "$(rpm -qa '*-logos-httpd' | grep -v 'el-logos-httpd')" ]]; then
     yum swap -y "*-logos-httpd" "el-logos-httpd"
   fi
 
@@ -711,8 +734,10 @@ reinstall_all_rpms() {
   # When listing packages with `yum`, there may be a few which are listed with
   # two lines rather than one due to their long filename - the output is
   # modified via `sed` to deal with this curiosity.
+  # To complicate things even further, two packages (rhnlib and rhnsd)
+  # are not branded. They are excluded from the non-EuroLinux RPM list.
   mapfile -t non_eurolinux_rpms_from_yum_list < <(yum list installed | sed '/^[^@]*$/{N;s/\n//}' | grep -Ev '@el-server-|@euroman|@fbi|@certify'"$internal_repo_pattern" | grep '@' | cut -d' ' -f 1 | cut -d'.' -f 1)
-  mapfile -t non_eurolinux_rpms_and_metadata < <(rpm -qa --qf "%{NEVRA}|%{VENDOR}|%{PACKAGER}\n" ${non_eurolinux_rpms_from_yum_list[*]} | grep -Ev 'EuroLinux|Scientific') 
+  mapfile -t non_eurolinux_rpms_and_metadata < <(rpm -qa --qf "%{NEVRA}|%{VENDOR}|%{PACKAGER}\n" ${non_eurolinux_rpms_from_yum_list[*]} | grep -Ev 'EuroLinux|Scientific' | sed 's@\ @\_@g' | grep -Ev '^(rhnlib|rhnsd).+\|\(none\)\|\(none\)$') 
   if [[ -n "${non_eurolinux_rpms_and_metadata[*]}" ]]; then
     echo "The following non-EuroLinux RPMs are installed on the system:"
     printf '\t%s\n' "${non_eurolinux_rpms_and_metadata[@]}"
@@ -722,7 +747,7 @@ reinstall_all_rpms() {
       echo "Removing these packages (except those kernel-related) automatically..."
       non_eurolinux_rpms_and_metadata_without_kernel_related=( ${non_eurolinux_rpms_and_metadata[@]/kernel*/} )
       if [ ${#non_eurolinux_rpms_and_metadata_without_kernel_related[@]} -gt 0 ]; then
-        yum remove-nevra -y ${non_eurolinux_rpms_and_metadata_without_kernel_related[@]%%|*}
+        yum remove -y ${non_eurolinux_rpms_and_metadata_without_kernel_related[@]%%|*}
       else
         echo "(no need to remove anything)"
       fi
@@ -733,9 +758,8 @@ reinstall_all_rpms() {
 update_grub() {
   # Update bootloader entries. Output to a symlink which always points to the
   # proper configuration file.
-  printf "Updating the GRUB2 bootloader at: "
   [ -d /sys/firmware/efi ] && grub2_conf="/etc/grub2-efi.cfg" || grub2_conf="/etc/grub2.cfg"
-  printf "$grub2_conf (symlinked to $(readlink $grub2_conf)).\n"
+  echo "Updating the GRUB2 bootloader at $grub2_conf (symlinked to $(readlink $grub2_conf))."
   grub2-mkconfig -o "$grub2_conf"
 }
 
@@ -765,19 +789,18 @@ verify_generated_rpms_info() {
   fi
 }
 
-remove_all_non_eurolinux_kernels_and_related_packages() {
-  echo "Running ./remove_kernels.sh..."
+remove_kernels_and_related_packages() {
+  # The answer on what to remove
+  # See the remove_kernels.sh's usage() for more information.
+  [ "$preserve" == "true" ] && removal_answer=3 || removal_answer=2
+  echo "Running ./remove_kernels.sh -a $removal_answer..."
   cd "$script_dir"
-  ./remove_kernels.sh
+  ./remove_kernels.sh -a $removal_answer
 }
 
 congratulations() {
-  echo "Switch complete."
-  echo "EuroLinux recommends rebooting this system."
-  echo "Once the system is rebooted, there will still be the current kernel
-listed as a bootloader entry. That is the expected behavior - it will be
-removed automatically along with its related packages once the system has
-finished booting using the EuroLinux kernel."
+  echo "Switch almost complete. EuroLinux recommends rebooting this system.
+Once booted up, a background service will perform a further kernel removal."
 }
 
 main() {
@@ -799,6 +822,7 @@ main() {
   grab_gpg_keys
   create_temp_el_repo
   register_to_euroman
+  remove_distro_gpg_pubkey
   disable_distro_repos
   fix_oracle_shenanigans
   remove_centos_yum_branding
@@ -812,19 +836,22 @@ main() {
   update_grub
   remove_leftovers
   verify_generated_rpms_info
-  remove_all_non_eurolinux_kernels_and_related_packages
+  remove_kernels_and_related_packages
   congratulations
 }
 
-while getopts "bfhp:r:u:v" option; do
+declare preserve="true"
+declare skip_verification="false"
+
+while getopts "fhp:r:u:vw" option; do
     case "$option" in
-        b) preserve="true" ;;
         f) skip_warning="true" ;;
         h) usage ;;
         p) el_euroman_password="$OPTARG" ;;
         r) path_to_internal_repo_file="$OPTARG" ;;
         u) el_euroman_user="$OPTARG" ;;
         v) skip_verification="true" ;;
+        w) preserve="false" ;;
         *) usage ;;
     esac
 done
