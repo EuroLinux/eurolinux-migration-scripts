@@ -154,6 +154,11 @@ prepare_pre_migration_environment() {
     echo "Oracle Linux detected - unprotecting systemd temporarily for distro-sync to succeed..."
     mv /etc/yum/protected.d/systemd.conf /etc/yum/protected.d/systemd.conf.bak
   fi
+  if [ "$preserve" != "true" ]; then
+    # Delete third-party repos' packages as well unless the 'preserve'
+    # option has been specified.
+    bad_packages+=( "$(rpm -qf /etc/yum.repos.d/*.repo --qf '%{name}\n' | sort -u | grep -v '^el-release' | tr '\n' ' ')" )
+  fi
 }
 
 check_yum_lock() {
@@ -593,11 +598,6 @@ force_el_release() {
           dep_check yumdownloader
           ;;
     esac
-#    if [ "$preserve" != "true" ]; then
-#      # Delete third-party repos' packages as well unless the 'preserve'
-#      # option has been specified.
-#      bad_packages+=( "$(rpm -qf /etc/yum.repos.d/*.repo --qf '%{name}\n' | sort -u | grep -v '^el-release' | tr '\n' ' ')" )
-#    fi
     for i in "${bad_packages[@]}" ; do rpm -e --nodeps "$i" || true ; done
 
     # Additional tweak for RHEL 8 - remove these directories manually.
@@ -610,7 +610,7 @@ force_el_release() {
     fi
 
     rpm -i --force el-release*
-fi
+  fi
 }
 
 install_el_base() {
