@@ -594,7 +594,7 @@ force_el_release() {
         7*)
           echo "Looking for yumdownloader..."
           yum -y install yum-utils
-          yum download el-release
+          yumdownloader el-release
           dep_check yumdownloader
           ;;
     esac
