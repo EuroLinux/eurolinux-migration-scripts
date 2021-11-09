@@ -122,3 +122,46 @@ this example will run all the tests in these machines and log the testing
 sessions on your host machine.  
 Refer to the comments the scripts provide for additional information.
 
+## Offline migration
+
+The script supports specifying one's own mirror with EuroLinux repositories
+with the `-r` option that points to one's .repo file. It is assumed that the
+mirrors have been created with [our official
+guide](https://docs.euro-linux.com/HowTo/mirror-eurolinux-locally/) and
+perhaps [an ISO image has been
+created](https://docs.euro-linux.com/HowTo/create-iso-with-repositories/) as
+well. Still, this might not be the case since there are multiple possibilities
+of implementing the internal mirror such as an HTTP server in a company's
+intranet. It's up to the user to decide on the implementation but just in case
+an ISO image is created, it can be used along with the Vagrant-based
+infrastructure for prototyping before applying the same procedure on
+production machines.  
+If libvirt is used as Vagrant provider, simply uncomment the following
+snippet and adjust the ISO image path:
+```ruby
+  #config.vm.provider "libvirt" do |libvirt|
+  #  libvirt.storage :file, :device => :cdrom, :path => "/var/lib/libvirt/images/mirror.iso"
+  #end
+```
+
+## Troubleshooting
+
+### The 'filesystem' package installation fails
+
+The migration fails with a message like this:
+```
+Failed:
+  filesystem.x86_64 0:3.2-25.el7
+```
+
+or:
+```
+Failed:
+  filesystem-3.8-3.el8.x86_64                         filesystem-3.8-3.el8.x86_64
+
+Error: Transaction failed
+```
+
+Most likely you performed an offline migration with an ISO image mounted
+directly at */mnt*. Make sure that only its subdirectories are used as mount
+points.
