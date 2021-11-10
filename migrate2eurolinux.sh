@@ -156,8 +156,9 @@ prepare_pre_migration_environment() {
       if [ "$(subscription-manager list --consumed | grep 'No consumed subscription pools were found' )"  ] ; then
         echo "No consumed subscription pools were found. Proceeding with migration."
       else
-        echo "The system is registered. Removing it from subscription management service... "
-        subscription-manager unregister
+        exit_message "The system is registered. Please backup all the subscription-related
+keys, certificates, etc. if necessary and remove the system from subscription
+management service with 'subscription-manager unregister', then run this script again."
       fi
       ;;
     oracle-release*|oraclelinux-release*|enterprise-release*)
