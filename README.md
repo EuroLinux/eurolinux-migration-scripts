@@ -32,7 +32,13 @@ Extra precautions have been arranged but there's always the risk of something
 going wrong in the process and users are always recommended to make a backup.  
 If your system release is lower than 8, make sure you have prepared valid
 EuroMan credentials since they'll be necessary for registering that instance
-and migrating.
+and migrating.  
+If your system is registered to a subscription management service, make sure
+that all assets such as keys and certificates related to that management
+service have been backed up if necessary and that the system has been
+unregistered before running the script. The script will attempt to detect a
+valid subscription and inform you on the steps required before proceeding if
+one is found.
 
 ## Usage
 
