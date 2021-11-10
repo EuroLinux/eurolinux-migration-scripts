@@ -150,10 +150,21 @@ prepare_pre_migration_environment() {
   os_version=$(rpm -q "${old_release}" --qf "%{version}")
   major_os_version=${os_version:0:1}
   base_packages=(basesystem el-logos el-release grub2 grubby initscripts plymouth)
-  if [[ "$old_release" =~ oraclelinux-release-(el)?[78] ]] ; then
-    echo "Oracle Linux detected - unprotecting systemd temporarily for distro-sync to succeed..."
-    mv /etc/yum/protected.d/systemd.conf /etc/yum/protected.d/systemd.conf.bak
-  fi
+  case "${old_release}" in
+    redhat-release*)
+      echo "RHEL detected. Checking subscription status..."
+      if [ "$(subscription-manager list --consumed | grep 'No consumed subscription pools were found' )"  ] ; then
+        echo "No consumed subscription pools were found. Proceeding with migration."
+      else
+        echo "The system is registered. Removing it from subscription management service... "
+        subscription-manager unregister
+      fi
+      ;;
+    oracle-release*|oraclelinux-release*|enterprise-release*)
+      echo "Oracle Linux detected - unprotecting systemd temporarily for distro-sync to succeed..."
+      mv /etc/yum/protected.d/systemd.conf /etc/yum/protected.d/systemd.conf.bak
+      ;;
+  esac
   if [ "$preserve" != "true" ]; then
     # Delete third-party repos' packages as well unless the 'preserve'
     # option has been specified.
