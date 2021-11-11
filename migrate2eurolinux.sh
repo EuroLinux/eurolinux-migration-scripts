@@ -728,6 +728,12 @@ reinstall_all_rpms() {
   echo "Reinstalling all RPMs..."
   yum reinstall -y \*
 
+  # Reinstalling OpenJDK packages breaks their links in /etc/alternatives:
+  # https://bugzilla.redhat.com/show_bug.cgi?id=1976053
+  rpm -qa --scripts java-*-openjdk-* | sed -n '/postinstall/, /exit/{ /postinstall/! { /exit/ ! p} }' | sh
+}
+
+compare_all_rpms() {
   # Once an internal .repo file is provided, search for the names of the
   # offline repositories and construct them as a grep pattern. Take a look
   # at the pipe symbol: | before a command substitution takes place - it
@@ -845,6 +851,7 @@ main() {
   debrand_modules
   deal_with_problematic_rpms
   reinstall_all_rpms
+  compare_all_rpms
   update_grub
   remove_leftovers
   verify_generated_rpms_info
