@@ -216,7 +216,7 @@ check_systemwide_python() {
 
 reset_modules() {
   mapfile -t modules_enabled < <(sudo dnf module list --enabled | grep -E '^[^:.]+\ +.+\[e\]' | cut -d ' ' -f 1)
-  dnf module reset -y ${modules_enabled[*]}
+  dnf module disable -y ${modules_enabled[*]}
 }
 
 get_branded_modules() {
@@ -700,7 +700,7 @@ debrand_modules() {
 }
 
 restore_modules() {
-  dnf module enable -y ${modules_enabled[*]}
+  dnf module enable -y ${modules_enabled[*]} || dnf module install -y ${modules_enabled[*]}
 }
 
 deal_with_problematic_rpms() {
@@ -740,6 +740,9 @@ reinstall_all_rpms() {
   # Reinstalling OpenJDK packages breaks their links in /etc/alternatives:
   # https://bugzilla.redhat.com/show_bug.cgi?id=1976053
   rpm -qa --scripts java-*-openjdk-* | sed -n '/postinstall/, /exit/{ /postinstall/! { /exit/ ! p} }' | sh
+
+  # ipa fix
+  rpm -qa 'ipa-server' | grep module && ipa-server-upgrade --skip-version-check
 }
 
 compare_all_rpms() {
