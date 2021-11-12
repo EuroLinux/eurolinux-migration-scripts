@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 # Initially based on Oracle's centos2ol script. Thus licensed under the Universal Permissive License v1.0
 # Copyright (c) 2020, 2021 Oracle and/or its affiliates.
 # Copyright (c) 2021 EuroLinux
@@ -214,6 +214,11 @@ check_systemwide_python() {
   esac
 }
 
+reset_modules() {
+  mapfile -t modules_enabled < <(sudo dnf module list --enabled | grep -E '^[^:.]+\ +.+\[e\]' | cut -d ' ' -f 1)
+  dnf module reset -y ${modules_enabled[*]}
+}
+
 get_branded_modules() {
   # Oracle Linux 8 modules are branded with 'ol8'. If one happens to be
   # enabled, add it to an array for later use. There can also be some modules
@@ -221,11 +226,11 @@ get_branded_modules() {
   # next.
   if [[ "$os_version" =~ 8.* ]]; then
     echo "Identifying dnf modules that are enabled..."
-    mapfile -t modules_enabled < <(dnf module list --enabled | grep -E 'ol8?\ \[' | awk '{print $1}')
-    if [[ "${modules_enabled[*]}" ]]; then
+    mapfile -t oraclelinux_modules_enabled < <(dnf module list --enabled | grep -E 'ol8?\ \[' | awk '{print $1}')
+    if [[ "${oraclelinux_modules_enabled[*]}" ]]; then
       # Create an array of modules we don't know how to manage
       unknown_modules=()
-      for module in "${modules_enabled[@]}"; do
+      for module in "${oraclelinux_modules_enabled[@]}"; do
         case ${module} in
           container-tools|go-toolset|jmc|llvm-toolset|rust-toolset|virt)
             ;;
@@ -672,8 +677,8 @@ debrand_modules() {
     8*)
       # There are a few dnf modules that are named after the distribution
       #  for each steam named 'ol' or 'ol8' perform a module reset and install
-      if [[ "${modules_enabled[*]}" ]]; then
-        for module in "${modules_enabled[@]}"; do
+      if [[ "${oraclelinux_modules_enabled[*]}" ]]; then
+        for module in "${oraclelinux_modules_enabled[@]}"; do
           dnf module reset -y "${module}"
           case ${module} in
           container-tools|go-toolset|jmc|llvm-toolset|rust-toolset|virt)
@@ -692,6 +697,10 @@ debrand_modules() {
       ;;
     *) : ;;
   esac
+}
+
+restore_modules() {
+  dnf module enable -y ${modules_enabled[*]}
 }
 
 deal_with_problematic_rpms() {
@@ -834,6 +843,7 @@ main() {
   check_yum_lock
   backup_internal_repo_file
   check_systemwide_python
+  reset_modules
   get_branded_modules
   find_repos_directory
   find_enabled_repos
