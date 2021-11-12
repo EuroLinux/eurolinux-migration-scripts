@@ -9,20 +9,18 @@ equivalents.
 ## Support
 
 The following distributions are supported on the x86_64 architecture:
-- AlmaLinux 8
-- CentOS 7
-- CentOS 8
-- Oracle Linux 7
-- Oracle Linux 8
-- Red Hat Enterprise Linux 7
-- Red Hat Enterprise Linux 8
-- Rocky Linux 8
-- Scientific Linux 7
+- AlmaLinux 8.4
+- CentOS 7.9
+- CentOS 8.4
+- Oracle Linux 7.9
+- Oracle Linux 8.4
+- Red Hat Enterprise Linux 7.9
+- Red Hat Enterprise Linux 8.4
+- Rocky Linux 8.4
+- Scientific Linux 7.9
 
-The distributions must be up to date and only their latest minor release is
-supported.  
-Additionally, if a system has been installed with Secure Boot enabled,
-make sure that it is disabled first before running the script.
+If a system has been installed with Secure Boot enabled, make sure that it is
+disabled first before running the script.
 
 ## Preparations
 
