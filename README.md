@@ -143,9 +143,7 @@ production machines.
 If libvirt is used as Vagrant provider, simply uncomment the following
 snippet and adjust the ISO image path:
 ```ruby
-  #config.vm.provider "libvirt" do |libvirt|
   #  libvirt.storage :file, :device => :cdrom, :path => "/var/lib/libvirt/images/mirror.iso"
-  #end
 ```
 
 ## Troubleshooting
