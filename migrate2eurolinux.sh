@@ -1,12 +1,9 @@
-#!/bin/bash
+#!/bin/bash -x
 # Initially based on Oracle's centos2ol script. Thus licensed under the Universal Permissive License v1.0
 # Copyright (c) 2020, 2021 Oracle and/or its affiliates.
 # Copyright (c) 2021 EuroLinux
 
 beginning_preparations() {
-  set -e
-  unset CDPATH
-
   script_dir="$(dirname $(readlink -f $0))"
   github_url="https://github.com/EuroLinux/eurolinux-migration-scripts"
   # These are all the packages we need to remove. Some may not reside in
@@ -160,10 +157,6 @@ prepare_pre_migration_environment() {
 keys, certificates, etc. if necessary and remove the system from subscription
 management service with 'subscription-manager unregister', then run this script again."
       fi
-      ;;
-    oracle-release*|oraclelinux-release*|enterprise-release*)
-      echo "Oracle Linux detected - unprotecting systemd temporarily for distro-sync to succeed..."
-      mv /etc/yum/protected.d/systemd.conf /etc/yum/protected.d/systemd.conf.bak
       ;;
   esac
   if [ "$preserve" != "true" ]; then
@@ -536,20 +529,22 @@ fix_oracle_shenanigans() {
   # stored for later use once a distro-sync has been performed.
   if [[ "$old_release" =~ oracle ]]; then
     echo "Dealing with Oracle Linux curiosities..."
+    echo "Unprotecting systemd temporarily..."
+    mv /etc/yum/protected.d/systemd.conf /etc/yum/protected.d/systemd.conf.bak
     rpm -e --nodeps $(rpm -qa | grep "oracle")
-    yum downgrade -y yum
-    yum downgrade -y $(for suffixable in $(rpm -qa | egrep "\.0\.[1-9]\.el") ; do rpm -q $suffixable --qf '%{NAME}\n' ; done)
+    yum downgrade --skip-broken -y yum 
+    yum downgrade --skip-broken -y $(for suffixable in $(rpm -qa | egrep "\.0\.[1-9]\.el") ; do rpm -q $suffixable --qf '%{NAME}\n' ; done)
     unlink /etc/os-release || true
     case "$os_version" in
       8*)
-        yum remove -y bcache-tools btrfs-progs python3-dnf-plugin-ulninfo
+        yum remove --skip-broken -y bcache-tools btrfs-progs python3-dnf-plugin-ulninfo
         echo "Getting the list of Oracle-branded modules..."
         oracle_modules_enabled=( $(dnf module list --enabled | grep ' ol8' | cut -d ' ' -f 1) )
         oracle_modules_installed=( $(dnf module list --installed | grep ' ol8' | cut -d ' ' -f 1) )
         [ -n "${oracle_modules_enabled[*]}" ] && dnf module reset -y ${oracle_modules_enabled[*]} || echo "(No Oracle-branded modules found)"
         ;;
       7*)
-        yum remove -y uname26
+        yum remove -y --skip-broken uname26
         ;;
     esac
   fi
@@ -668,11 +663,11 @@ deal_with_problematic_rpms() {
   yum remove -y libzstd || true
 
   # A necessary downgrade to the version from our repos since the 'virt'
-  # module gets installed when debranding Oracle Linux modules
+  # module gets installed when debranding Oracle Linux modules. It may fail
+  # and a removal is performed as a fallback action.
   case "$os_version" in
     8*)
-      dnf downgrade -y qemu-guest-agent || true
-      ;;
+      [ $(rpm -qa "qemu-guest-agent") ] && sudo dnf downgrade -y qemu-guest-agent || sudo dnf remove -y qemu-guest-agent ;;
     *) : ;;
   esac
 }
