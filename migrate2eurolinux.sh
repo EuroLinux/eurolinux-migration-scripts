@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 # Initially based on Oracle's centos2ol script. Thus licensed under the Universal Permissive License v1.0
 # Copyright (c) 2020, 2021 Oracle and/or its affiliates.
 # Copyright (c) 2021 EuroLinux
@@ -212,55 +212,6 @@ check_systemwide_python() {
       dep_check python2
       ;;
   esac
-}
-
-reset_modules() {
-  mapfile -t modules_enabled < <(sudo dnf module list --enabled | grep -E '^[^:.]+\ +.+\[e\]' | cut -d ' ' -f 1)
-  dnf module disable -y ${modules_enabled[*]}
-}
-
-get_branded_modules() {
-  # Oracle Linux 8 modules are branded with 'ol8'. If one happens to be
-  # enabled, add it to an array for later use. There can also be some modules
-  # present that the script can't manage - if that happens, ask on what to do
-  # next.
-  if [[ "$os_version" =~ 8.* ]]; then
-    echo "Identifying dnf modules that are enabled..."
-    mapfile -t oraclelinux_modules_enabled < <(dnf module list --enabled | grep -E 'ol8?\ \[' | awk '{print $1}')
-    if [[ "${oraclelinux_modules_enabled[*]}" ]]; then
-      # Create an array of modules we don't know how to manage
-      unknown_modules=()
-      for module in "${oraclelinux_modules_enabled[@]}"; do
-        case ${module} in
-          container-tools|go-toolset|jmc|llvm-toolset|rust-toolset|virt)
-            ;;
-          *)
-            # Add this module name to our array of modules we don't know how
-            # to manage
-            unknown_modules+=("${module}")
-            ;;
-        esac
-      done
-      # If we have any modules we don't know how to manage, ask the user how
-      # to proceed
-      if [ ${#unknown_modules[@]} -gt 0 ]; then
-        echo "This tool is unable to automatically switch module(s) '${unknown_modules[*]}' from an Oracle 'ol' stream to
-an EuroLinux equivalent. Do you want to continue and resolve it manually?
-You may want select No to stop and raise an issue on ${github_url} for advice."
-        select yn in "Yes" "No"; do
-          case $yn in
-            Yes )
-              break
-              ;;
-            No )
-              echo "Unsure how to switch module(s) '${unknown_modules[*]}'. Exiting as requested"
-              exit 1
-              ;;
-          esac
-        done
-      fi
-    fi
-  fi
 }
 
 find_repos_directory() {
@@ -581,7 +532,8 @@ fix_oracle_shenanigans() {
   # to EuroLinux equivalents once EuroLinux repositories have been added.
   #
   # Some Oracle Linux exclusive packages with no equivalents will be removed
-  # as well.
+  # as well. Oracle-branded enabled modules will be reset here and their names
+  # stored for later use once a distro-sync has been performed.
   if [[ "$old_release" =~ oracle ]]; then
     echo "Dealing with Oracle Linux curiosities..."
     rpm -e --nodeps $(rpm -qa | grep "oracle")
@@ -590,12 +542,16 @@ fix_oracle_shenanigans() {
     unlink /etc/os-release || true
     case "$os_version" in
       8*)
-        yum remove -y bcache-tools btrfs-progs python3-dnf-plugin-ulninfo 
+        yum remove -y bcache-tools btrfs-progs python3-dnf-plugin-ulninfo
+        echo "Getting the list of Oracle-branded modules..."
+        oracle_modules_enabled=( $(dnf module list --enabled | grep ' ol8' | cut -d ' ' -f 1) )
+        oracle_modules_installed=( $(dnf module list --installed | grep ' ol8' | cut -d ' ' -f 1) )
+        [ -n "${oracle_modules_enabled[*]}" ] && dnf module reset -y ${oracle_modules_enabled[*]} || echo "(No Oracle-branded modules found)"
         ;;
       7*)
         yum remove -y uname26
         ;;
-      esac
+    esac
   fi
 }
 
@@ -670,37 +626,29 @@ el_distro_sync() {
   fi
 }
 
-debrand_modules() {
-  # Use the previously acquired array of known modules to switch them to
-  # EuroLinux-branded ones.
-  case "$os_version" in
-    8*)
-      # There are a few dnf modules that are named after the distribution
-      #  for each steam named 'ol' or 'ol8' perform a module reset and install
-      if [[ "${oraclelinux_modules_enabled[*]}" ]]; then
-        for module in "${oraclelinux_modules_enabled[@]}"; do
-          dnf module reset -y "${module}"
-          case ${module} in
-          container-tools|go-toolset|jmc|llvm-toolset|rust-toolset|virt)
-            dnf module install -y "${module}"
-            ;;
-          *)
-            echo "Unsure how to transform module ${module}"
-            ;;
-          esac
-        done
-        # EuroLinux 8 repositories are named with 'certify-' prefix for a
-        # purpose - this is the case of a simple matching that works with this
-        # naming convention.
-        dnf --assumeyes --disablerepo "*" --enablerepo "certify*" update
-      fi
-      ;;
-    *) : ;;
-  esac
-}
-
 restore_modules() {
-  dnf module enable -y ${modules_enabled[*]} || dnf module install -y ${modules_enabled[*]}
+  # Restore the modules that were previously Oracle-branded.
+  # First, check if the system the migration is taking place on was Oracle
+  # Linux - otherwise it's pointless to run all these checks.
+  if [[ "$old_release" =~ oracle ]]; then
+    echo "Restoring modules that were Oracle-branded if applicable..."
+    case "$os_version" in
+      8*)
+        if [ -n "${oracle_modules_enabled[*]}" ]; then
+            eurolinux_modules_to_enable=( $(echo ${oracle_modules_enabled[*]} | sed -E 's@ @:rhel8 @g;s@$@:rhel8@g') )
+            echo "Reenabling the modules: ${eurolinux_modules_to_enable[*]}..."
+            dnf module enable -y ${eurolinux_modules_to_enable[*]}
+        fi
+        if [ -n "${oracle_modules_installed[*]}" ]; then
+            eurolinux_modules_to_install=( $(echo ${oracle_modules_installed[*]} | sed -E 's@ @:rhel8 @g;s@$@:rhel8@g') )
+            echo "Reinstalling the modules: ${eurolinux_modules_to_install[*]}..."
+            dnf module install -y ${eurolinux_modules_to_install[*]}
+        fi
+        echo "Module restoration done."
+      ;;
+      *) echo "(Non-applicable)" ;;
+    esac
+  fi
 }
 
 deal_with_problematic_rpms() {
@@ -729,14 +677,7 @@ deal_with_problematic_rpms() {
   esac
 }
 
-reinstall_all_rpms() {
-  # A safety measure - all packages will be reinstalled and then compared if
-  # they belong to EuroLinux or not. If not, this might not be a problem at
-  # all - it depends if they are from other vendors you migrated from or third
-  # party repositories such as EPEL.
-  echo "Reinstalling all RPMs..."
-  yum reinstall -y \*
-
+reinstalled_rpms_fixes() {
   # Reinstalling OpenJDK packages breaks their links in /etc/alternatives:
   # https://bugzilla.redhat.com/show_bug.cgi?id=1976053
   rpm -qa --scripts java-*-openjdk-* | sed -n '/postinstall/, /exit/{ /postinstall/! { /exit/ ! p} }' | sh
@@ -846,8 +787,6 @@ main() {
   check_yum_lock
   backup_internal_repo_file
   check_systemwide_python
-  reset_modules
-  get_branded_modules
   find_repos_directory
   find_enabled_repos
   grab_gpg_keys
@@ -861,9 +800,9 @@ main() {
   install_el_base
   update_initrd
   el_distro_sync
-  debrand_modules
+  restore_modules
   deal_with_problematic_rpms
-  reinstall_all_rpms
+  reinstalled_rpms_fixes
   compare_all_rpms
   update_grub
   remove_leftovers
