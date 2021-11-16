@@ -681,6 +681,15 @@ reinstalled_rpms_fixes() {
   rpm -qa 'ipa-server' | grep module && ipa-server-upgrade --skip-version-check
 }
 
+reinstall_all_rpms() {
+  # A safety measure - all packages will be reinstalled and later on compared
+  # if they belong to EuroLinux or not. If not, this might not be a problem at
+  # all - it depends if they are from other vendors you migrated from or third
+  # party repositories such as EPEL.
+  echo "Reinstalling all RPMs..."
+  yum reinstall -y \*
+}
+
 compare_all_rpms() {
   # Once an internal .repo file is provided, search for the names of the
   # offline repositories and construct them as a grep pattern. Take a look
