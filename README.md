@@ -19,8 +19,12 @@ The following distributions are supported on the x86_64 architecture:
 - Rocky Linux 8.4
 - Scientific Linux 7.9
 
-If a system has been installed with Secure Boot enabled, make sure that it is
-disabled first before running the script.
+It is possible to migrate from other release versions such as 8.2 or 8.5 since
+the script should succeed in syncing the packages to EuroLinux 8.4 equivalents
+but it's not officially supported. Analogically a migration from 7.4 upwards
+should succeed in syncing to EuroLinux 7.9.  
+**If a system has been installed with Secure Boot enabled, make sure that it
+is disabled first before running the script.**
 
 ## Preparations
 
