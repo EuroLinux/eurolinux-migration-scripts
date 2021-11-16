@@ -40,7 +40,15 @@ that all assets such as keys and certificates related to that management
 service have been backed up if necessary and that the system has been
 unregistered before running the script. The script will attempt to detect a
 valid subscription and inform you on the steps required before proceeding if
-one is found.
+one is found.  
+Make sure that your system does not use any centralized package management
+suite. The script will provide EuroLinux repositories but as of today it has
+no knowledge of the suite mentioned - package collisions are likely to happen.
+Please disable the suite if necessary before attempting to migrate.  
+Check your system if there's a file mounted directly at the directory `/mnt`
+or if the directory `/sys` is mounted as read-only. Make sure none of this
+applies, otherwise the migration will not succeed. An example of an error is
+presented later on.
 
 ## Usage
 
@@ -168,6 +176,6 @@ Failed:
 Error: Transaction failed
 ```
 
-Most likely you performed an offline migration with an ISO image mounted
-directly at */mnt*. Make sure that only its subdirectories are used as mount
-points.
+Most likely you performed an offline migration with an ISO image (or a
+different file) mounted directly at */mnt*. Make sure that only its
+subdirectories are used as mount points.
