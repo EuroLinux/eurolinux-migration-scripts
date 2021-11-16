@@ -672,15 +672,6 @@ deal_with_problematic_rpms() {
   esac
 }
 
-reinstalled_rpms_fixes() {
-  # Reinstalling OpenJDK packages breaks their links in /etc/alternatives:
-  # https://bugzilla.redhat.com/show_bug.cgi?id=1976053
-  rpm -qa --scripts java-*-openjdk-* | sed -n '/postinstall/, /exit/{ /postinstall/! { /exit/ ! p} }' | sh
-
-  # ipa fix
-  rpm -qa 'ipa-server' | grep module && ipa-server-upgrade --skip-version-check
-}
-
 reinstall_all_rpms() {
   # A safety measure - all packages will be reinstalled and later on compared
   # if they belong to EuroLinux or not. If not, this might not be a problem at
@@ -688,6 +679,15 @@ reinstall_all_rpms() {
   # party repositories such as EPEL.
   echo "Reinstalling all RPMs..."
   yum reinstall -y \*
+}
+
+fix_reinstalled_rpms() {
+  # Reinstalling OpenJDK packages breaks their links in /etc/alternatives:
+  # https://bugzilla.redhat.com/show_bug.cgi?id=1976053
+  rpm -qa --scripts java-*-openjdk-* | sed -n '/postinstall/, /exit/{ /postinstall/! { /exit/ ! p} }' | sh
+
+  # ipa fix
+  rpm -qa 'ipa-server' | grep module && ipa-server-upgrade --skip-version-check
 }
 
 compare_all_rpms() {
@@ -806,7 +806,8 @@ main() {
   el_distro_sync
   restore_modules
   deal_with_problematic_rpms
-  reinstalled_rpms_fixes
+  reinstall_all_rpms
+  fix_reinstalled_rpms
   compare_all_rpms
   update_grub
   remove_leftovers
