@@ -4,9 +4,10 @@
 Vagrant.configure("2") do |config|
   config.vm.box_check_update = false
   config.vm.synced_folder '.', '/vagrant', type: "rsync"
-  #config.vm.provider "libvirt" do |libvirt|
+  config.vm.provider "libvirt" do |libvirt|
+    libvirt.random_hostname = true
   #  libvirt.storage :file, :device => :cdrom, :path => "/var/lib/libvirt/images/mirror.iso"
-  #end
+  end
 
   config.vm.define "almalinux8" do |i|
     i.vm.box = "eurolinux-vagrant/almalinux-8"

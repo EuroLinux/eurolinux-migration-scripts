@@ -19,10 +19,12 @@ The following distributions are supported on the x86_64 architecture:
 - Rocky Linux 8
 - Scientific Linux 7
 
-The distributions must be up to date and only their latest minor release is
-supported.  
-Additionally, if a system has been installed with Secure Boot enabled,
-make sure that it is disabled first before running the script.
+It is possible to migrate from other release versions such as 8.2 since the
+script should succeed in syncing the packages to EuroLinux equivalents but it's
+not officially supported. Analogically a migration from 7.4 upwards should
+succeed in syncing to EuroLinux 7.9.  
+**If a system has been installed with Secure Boot enabled, make sure that it
+is disabled first before running the script.**
 
 ## Preparations
 
@@ -38,7 +40,15 @@ that all assets such as keys and certificates related to that management
 service have been backed up if necessary and that the system has been
 unregistered before running the script. The script will attempt to detect a
 valid subscription and inform you on the steps required before proceeding if
-one is found.
+one is found.  
+Make sure that your system does not use any centralized package management
+suite. The script will provide EuroLinux repositories but as of today it has
+no knowledge of the suite mentioned - package collisions are likely to happen.
+Please disable the suite if necessary before attempting to migrate.  
+Check your system if there's a file mounted directly at the directory `/mnt`
+or if the directory `/sys` is mounted as read-only. Make sure none of this
+applies, otherwise the migration will not succeed. An example of an error is
+presented later on.
 
 ## Usage
 
@@ -145,9 +155,7 @@ production machines.
 If libvirt is used as Vagrant provider, simply uncomment the following
 snippet and adjust the ISO image path:
 ```ruby
-  #config.vm.provider "libvirt" do |libvirt|
   #  libvirt.storage :file, :device => :cdrom, :path => "/var/lib/libvirt/images/mirror.iso"
-  #end
 ```
 
 ## Troubleshooting
@@ -168,6 +176,6 @@ Failed:
 Error: Transaction failed
 ```
 
-Most likely you performed an offline migration with an ISO image mounted
-directly at */mnt*. Make sure that only its subdirectories are used as mount
-points.
+Most likely you performed an offline migration with an ISO image (or a
+different file) mounted directly at */mnt*. Make sure that only its
+subdirectories are used as mount points.
