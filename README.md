@@ -20,9 +20,9 @@ The following distributions are supported on the x86_64 architecture:
 - Scientific Linux 7
 
 It is possible to migrate from other release versions such as 8.2 since the
-script should succeed in syncing the packages to newest EuroLinux equivalents
-but it's not officially supported. Analogically a migration from 7.4 upwards
-should succeed in syncing to EuroLinux 7.9.  
+script should succeed in syncing the packages to EuroLinux equivalents but it's
+not officially supported. Analogically a migration from 7.4 upwards should
+succeed in syncing to EuroLinux 7.9.  
 **If a system has been installed with Secure Boot enabled, make sure that it
 is disabled first before running the script.**
 
