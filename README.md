@@ -9,18 +9,18 @@ equivalents.
 ## Support
 
 The following distributions are supported on the x86_64 architecture:
-- AlmaLinux 8.4
-- CentOS 7.9
-- CentOS 8.4
-- Oracle Linux 7.9
-- Oracle Linux 8.4
-- Red Hat Enterprise Linux 7.9
-- Red Hat Enterprise Linux 8.4
-- Rocky Linux 8.4
-- Scientific Linux 7.9
+- AlmaLinux 8
+- CentOS 7
+- CentOS 8
+- Oracle Linux 7
+- Oracle Linux 8
+- Red Hat Enterprise Linux 7
+- Red Hat Enterprise Linux 8
+- Rocky Linux 8
+- Scientific Linux 7
 
-It is possible to migrate from other release versions such as 8.2 or 8.5 since
-the script should succeed in syncing the packages to EuroLinux 8.4 equivalents
+It is possible to migrate from other release versions such as 8.2 since the
+script should succeed in syncing the packages to newest EuroLinux equivalents
 but it's not officially supported. Analogically a migration from 7.4 upwards
 should succeed in syncing to EuroLinux 7.9.  
 **If a system has been installed with Secure Boot enabled, make sure that it
