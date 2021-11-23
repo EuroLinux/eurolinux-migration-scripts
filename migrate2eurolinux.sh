@@ -66,6 +66,10 @@ final_failure() {
   exit_message "An error occurred while attempting to switch this system to EuroLinux and it may be in an unstable/unbootable state. To avoid further issues, the script has terminated."
 }
 
+check_fips() {
+  [ "$(grep 'fips=1' /proc/cmdline)" ] && exit_message "You appear to be running a system in FIPS mode, which is not supported for migration."
+}
+
 generate_rpms_info() {
   # Generate an RPM database log and a list of RPMs installed on your system
   # at any point in time.
@@ -781,6 +785,7 @@ Once booted up, a background service will perform a further kernel removal."
 main() {
   # All function calls.
   warning_message
+  check_fips
   check_root
   beginning_preparations
   check_required_packages
