@@ -49,7 +49,7 @@ Check your system if there's a file mounted directly at the directory `/mnt`
 or if the directory `/sys` is mounted as read-only. Make sure none of this
 applies, otherwise the migration will not succeed. An example of an error is
 presented later on. 
-You system may have custom kernel modules installed. If they are managed
+Your system may have custom kernel modules installed. If they are managed
 by DKMS and your package manager takes care of this, they will most
 likely be available out-of-the-box after the migration succeeds. Still
 it's recommended that a manual verification be performed. Modules
