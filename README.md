@@ -48,7 +48,17 @@ Please disable the suite if necessary before attempting to migrate.
 Check your system if there's a file mounted directly at the directory `/mnt`
 or if the directory `/sys` is mounted as read-only. Make sure none of this
 applies, otherwise the migration will not succeed. An example of an error is
-presented later on.
+presented later on. 
+You system may have custom kernel modules installed. If they are managed
+by DKMS and your package manager takes care of this, they will most
+likely be available out-of-the-box after the migration succeeds. Still
+it's recommended that a manual verification be performed. Modules
+installed manually (e.g. from a *.run* installer) will most likely have
+to be installed again the same way.  
+If your system has been installed with FIPS Mode enabled, the migration
+will not succeed. It might look like everything's fine but you'll
+encounter a kernel panic once the system is rebooted. In this case a
+clean installation is recommended.
 
 ## Usage
 
