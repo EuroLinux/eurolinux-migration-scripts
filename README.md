@@ -56,9 +56,7 @@ it's recommended that a manual verification be performed. Modules
 installed manually (e.g. from a *.run* installer) will most likely have
 to be installed again the same way.  
 If your system has been installed with FIPS Mode enabled, the migration
-will not succeed. It might look like everything's fine but you'll
-encounter a kernel panic once the system is rebooted. In this case a
-clean installation is recommended.
+process will not proceed. In this case a clean installation is recommended.
 
 ## Usage
 
