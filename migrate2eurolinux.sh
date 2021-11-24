@@ -3,6 +3,8 @@
 # Copyright (c) 2020, 2021 Oracle and/or its affiliates.
 # Copyright (c) 2021 EuroLinux
 
+set -euo pipefail
+
 beginning_preparations() {
   script_dir="$(dirname $(readlink -f $0))"
   github_url="https://github.com/EuroLinux/eurolinux-migration-scripts"
@@ -690,8 +692,10 @@ fix_reinstalled_rpms() {
   # https://bugzilla.redhat.com/show_bug.cgi?id=1976053
   rpm -qa --scripts java-*-openjdk-* | sed -n '/postinstall/, /exit/{ /postinstall/! { /exit/ ! p} }' | sh
 
-  # ipa fix
-  rpm -qa 'ipa-server' | grep module && ipa-server-upgrade --skip-version-check
+  # After reinstalling IPA we need to perform an 'upgrade' to make it work again.
+  set +euo pipefail
+  [ "$(rpm -qa 'ipa-server' | grep module)" ] && ipa-server-upgrade --skip-version-check
+  set -euo pipefail
 }
 
 compare_all_rpms() {
