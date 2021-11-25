@@ -705,6 +705,11 @@ fix_reinstalled_rpms() {
 }
 
 compare_all_rpms() {
+  declare internal_repo_pattern=""
+  declare -a non_eurolinux_rpms_from_yum_list
+  declare -a non_eurolinux_rpms_and_metadata
+  declare -a non_eurolinux_rpms_and_metadata_without_kernel_related
+
   # Once an internal .repo file is provided, search for the names of the
   # offline repositories and construct them as a grep pattern. Take a look
   # at the pipe symbol: | before a command substitution takes place - it
