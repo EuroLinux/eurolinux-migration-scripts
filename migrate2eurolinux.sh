@@ -537,6 +537,7 @@ fix_oracle_shenanigans() {
   # Some Oracle Linux exclusive packages with no equivalents will be removed
   # as well. Oracle-branded enabled modules will be reset here and their names
   # stored for later use once a distro-sync has been performed.
+  set +euo pipefail
   if [[ "$old_release" =~ oracle ]]; then
     echo "Dealing with Oracle Linux curiosities..."
     echo "Unprotecting systemd temporarily..."
@@ -557,6 +558,7 @@ fix_oracle_shenanigans() {
         yum remove -y --skip-broken uname26
         ;;
     esac
+    set -euo pipefail
   fi
 }
 
