@@ -69,7 +69,9 @@ final_failure() {
 }
 
 check_fips() {
-  [ "$(grep 'fips=1' /proc/cmdline)" ] && exit_message "You appear to be running a system in FIPS mode, which is not supported for migration."
+  if [ "$(grep 'fips=1' /proc/cmdline)" ]; then
+    exit_message "You appear to be running a system in FIPS mode, which is not supported for migration."
+  fi
 }
 
 generate_rpms_info() {
@@ -168,7 +170,9 @@ management service with 'subscription-manager unregister', then run this script 
   if [ "$preserve" != "true" ]; then
     # Delete third-party repos' packages as well unless the 'preserve'
     # option has been specified.
+    set +e
     bad_packages+=( "$(rpm -qf /etc/yum.repos.d/*.repo --qf '%{name}\n' | sort -u | grep -v '^el-release' | tr '\n' ' ')" )
+    set -e
   fi
 }
 
