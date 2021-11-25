@@ -829,6 +829,7 @@ main() {
   congratulations
 }
 
+declare path_to_internal_repo_file=""
 declare preserve="true"
 declare skip_verification="false"
 
