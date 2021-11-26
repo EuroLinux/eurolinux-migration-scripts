@@ -69,7 +69,9 @@ final_failure() {
 }
 
 check_fips() {
-  [ "$(grep 'fips=1' /proc/cmdline)" ] && exit_message "You appear to be running a system in FIPS mode, which is not supported for migration."
+  if [ "$(grep 'fips=1' /proc/cmdline)" ]; then
+    exit_message "You appear to be running a system in FIPS mode, which is not supported for migration."
+  fi
 }
 
 generate_rpms_info() {
@@ -168,7 +170,9 @@ management service with 'subscription-manager unregister', then run this script 
   if [ "$preserve" != "true" ]; then
     # Delete third-party repos' packages as well unless the 'preserve'
     # option has been specified.
+    set +e
     bad_packages+=( "$(rpm -qf /etc/yum.repos.d/*.repo --qf '%{name}\n' | sort -u | grep -v '^el-release' | tr '\n' ' ')" )
+    set -e
   fi
 }
 
@@ -533,6 +537,7 @@ fix_oracle_shenanigans() {
   # Some Oracle Linux exclusive packages with no equivalents will be removed
   # as well. Oracle-branded enabled modules will be reset here and their names
   # stored for later use once a distro-sync has been performed.
+  set +euo pipefail
   if [[ "$old_release" =~ oracle ]]; then
     echo "Dealing with Oracle Linux curiosities..."
     echo "Unprotecting systemd temporarily..."
@@ -553,6 +558,7 @@ fix_oracle_shenanigans() {
         yum remove -y --skip-broken uname26
         ;;
     esac
+    set -euo pipefail
   fi
 }
 
@@ -699,6 +705,12 @@ fix_reinstalled_rpms() {
 }
 
 compare_all_rpms() {
+  set +u
+  declare internal_repo_pattern=""
+  declare -a non_eurolinux_rpms_from_yum_list
+  declare -a non_eurolinux_rpms_and_metadata
+  declare -a non_eurolinux_rpms_and_metadata_without_kernel_related
+
   # Once an internal .repo file is provided, search for the names of the
   # offline repositories and construct them as a grep pattern. Take a look
   # at the pipe symbol: | before a command substitution takes place - it
@@ -736,6 +748,7 @@ compare_all_rpms() {
       fi
     fi
   fi
+  set -u
 }
 
 update_grub() {
@@ -825,6 +838,7 @@ main() {
   congratulations
 }
 
+declare path_to_internal_repo_file=""
 declare preserve="true"
 declare skip_verification="false"
 
