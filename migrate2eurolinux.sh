@@ -705,6 +705,7 @@ fix_reinstalled_rpms() {
 }
 
 compare_all_rpms() {
+  set +u
   declare internal_repo_pattern=""
   declare -a non_eurolinux_rpms_from_yum_list
   declare -a non_eurolinux_rpms_and_metadata
@@ -747,6 +748,7 @@ compare_all_rpms() {
       fi
     fi
   fi
+  set -u
 }
 
 update_grub() {
