@@ -77,6 +77,7 @@ check_fips() {
 generate_rpms_info() {
   # Generate an RPM database log and a list of RPMs installed on your system
   # at any point in time.
+  set +euo pipefail
   if [ "$skip_verification" != "true" ]; then
     # $1 - before/after (a migration)
     echo "Creating a list of RPMs installed $1 the switch..."
@@ -84,6 +85,7 @@ generate_rpms_info() {
     echo "Verifying RPMs installed $1 the switch against RPM database..."
     rpm -Va | sort -k3 > "/var/tmp/$(hostname)-rpms-verified-$1.log"
   fi
+  set -euo pipefail
 }
 
 check_root() {
@@ -838,9 +840,11 @@ main() {
   congratulations
 }
 
+declare answer=""
 declare path_to_internal_repo_file=""
 declare preserve="true"
 declare skip_verification="false"
+declare skip_warning=""
 
 while getopts "fhp:r:u:vw" option; do
     case "$option" in
