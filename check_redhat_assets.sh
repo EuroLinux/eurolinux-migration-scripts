@@ -48,11 +48,15 @@ before_migration() {
 }
 
 after_migration() {
-  if [ $(wc -l < all_redhat_packages.txt) -eq 0 ]; then
-    echo "It's pointless to perform any checks if the previous system did not
-    contain any Red Hat packages, exiting."
-    exit 0
-  fi 
+  if [ ! -f "all_redhat_packages.txt" ] ; then
+    echo "Run ${0##*/} -b (before migrating to EuroLinux) first."
+  else
+    if [ ! -s "all_redhat_packages.txt" ] ; then
+      echo "It's pointless to perform any checks if the previous system did not
+      contain any Red Hat packages, exiting."
+      exit 0
+    fi
+  fi
 
   # Several assets will be removed after the migration and attempting to
   # checksum them will result in an error. So don't abort the script here.
@@ -63,18 +67,18 @@ after_migration() {
   comm -12 <(sort "assets_checked_before_migration.txt") \
     <(sort "assets_checked_after_migration.txt") | cut -d' ' -f 3 \
     | grep -Ev '^/usr/share/doc/redhat-(release|menus)' | sort \
-    > remaining_assets.txt \
-    || (echo "Success - no Red Hat files found." && exit 0)
+    > remaining_assets.txt
 
-  if [ $(wc -l < remaining_assets.txt) -gt 0 ]; then
+  if [ -s remaining_assets.txt ]; then
     echo "The following Red Hat files remain after the migration:"
     cat remaining_assets.txt
     echo "Removing them right now..."
     sudo xargs rm -f < remaining_assets.txt && echo "Assets removed."
+  else
+    echo "Success - no Red Hat files found after migrating to EuroLinux."
   fi
 }
 
-> all_redhat_packages.txt
 sum="md5sum"
 
 [[ ! $@ =~ ^\-.+ ]] && usage && exit 1
