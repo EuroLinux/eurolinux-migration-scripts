@@ -30,7 +30,8 @@ ARGUMENTS
 
 before_migration() {
   rpm -qa --qf '%{nevra}@%{vendor}\n' | grep -E 'Red Hat' \
-    > all_redhat_packages.txt
+    > all_redhat_packages.txt || \
+  ( echo "No Red Hat packages found, exiting" && exit 0 )
 
   cut -d'@' -f1 < all_redhat_packages.txt \
   | xargs rpm -ql --noconfig > all_redhat_assets.txt
@@ -46,6 +47,14 @@ before_migration() {
 }
 
 after_migration() {
+  # It's pointless to perform any checks if the previous system did not
+  # contain any Red Hat packages, that is if the system was an Enterprise
+  # Linux variant other than RHEL.
+  if [ $(wc -l all_redhat_packages.txt) -eq 0 ]; then
+    echo "No Red Hat packages were listed before migration, exiting"
+    exit 0
+  fi 
+
   # Several assets will be removed after the migration and attempting to
   # checksum them will result in an error. So don't abort the script here.
   set +e
