@@ -29,15 +29,19 @@ ARGUMENTS
 # provided. This is done on purpose.
 
 before_migration() {
-  if [ ! $(rpm -qa --qf '%{nevra}@%{vendor}\n' | grep -E 'Red Hat' \
-    > all_redhat_packages.txt) ]; then
-    echo "No Red Hat packages found on this system, exiting." && exit 0 
+  set +e
+    rpm -qa --qf '%{nevra}@%{vendor}\n' | grep -E 'Red Hat' \
+      > all_redhat_packages.txt
+  set -e
+  if [ ! -s "all_redhat_packages.txt" ] ; then
+    echo "No Red Hat packages found on this system, exiting."
+    exit 0
   fi
 
   cut -d'@' -f1 < all_redhat_packages.txt \
-  | xargs rpm -ql --noconfig > all_redhat_assets.txt
+    | xargs rpm -ql --noconfig > all_redhat_assets.txt
 
-  # redhat-branded images and text assets
+  # Red Hat-branded images and text assets
   grep -E '^redhat|^Red' "all_redhat_packages.txt" | cut -d'@' -f1 \
     | xargs rpm -ql --noconfig | grep -Ei 'fedora.logo|red' \
     | while IFS= read -r file; do \
@@ -61,7 +65,7 @@ after_migration() {
   # Several assets will be removed after the migration and attempting to
   # checksum them will result in an error. So don't abort the script here.
   set +e
-  xargs $sum < assets_to_check.txt > assets_checked_after_migration.txt
+    xargs $sum < assets_to_check.txt > assets_checked_after_migration.txt
   set -e
 
   comm -12 <(sort "assets_checked_before_migration.txt") \
