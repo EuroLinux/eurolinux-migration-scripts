@@ -38,7 +38,9 @@ before_migration() {
   # redhat-branded images and text assets
   grep -E '^redhat|^Red' "all_redhat_packages.txt" | cut -d'@' -f1 \
     | xargs rpm -ql --noconfig | grep -Ei 'fedora.logo|red' \
-    > assets_to_check.txt
+    | while IFS= read -r file; do \
+        [ -f "$file" ] && printf '%s\n' "$file" ; \
+      done > assets_to_check.txt
 
   xargs $sum < assets_to_check.txt > assets_checked_before_migration.txt
 }
