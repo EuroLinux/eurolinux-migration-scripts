@@ -41,6 +41,7 @@ before_migration() {
   cut -d'@' -f1 < all_redhat_packages.txt \
     | xargs rpm -ql --noconfig > all_redhat_assets.txt
 
+  set +e
   # Red Hat-branded images and text assets
   grep -E 'insights|redhat|rhel|Red' "all_redhat_packages.txt" \
     | cut -d'@' -f1 \
@@ -49,8 +50,10 @@ before_migration() {
     | while IFS= read -r file; do \
         [ -f "$file" ] && printf '%s\n' "$file" ; \
       done > assets_to_check.txt
+  set -e
 
-  xargs $sum < assets_to_check.txt > assets_checked_before_migration.txt
+  xargs $sum < assets_to_check.txt > assets_checked_before_migration.txt \
+    && echo "$(wc -l < assets_to_check.txt) Red Hat assets found."
 }
 
 after_migration() {
