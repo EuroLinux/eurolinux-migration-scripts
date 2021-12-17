@@ -43,10 +43,8 @@ before_migration() {
 
   set +e
   # Red Hat-branded images and text assets
-  grep -E 'insights|redhat|rhel|Red' "all_redhat_packages.txt" \
-    | cut -d'@' -f1 \
-    | xargs rpm -ql --noconfig \
-    | grep -Ei 'fedora.logo|redhat|Red|rhel' \
+  grep -E 'insights|^redhat|^Red' "all_redhat_packages.txt" | cut -d'@' -f1 \
+    | xargs rpm -ql --noconfig | grep -Ei 'fedora.logo|red|rhel' \
     | while IFS= read -r file; do \
         [ -f "$file" ] && printf '%s\n' "$file" ; \
       done > assets_to_check.txt
@@ -61,8 +59,8 @@ after_migration() {
     echo "Run ${0##*/} -b (before migrating to EuroLinux) first."
   else
     if [ ! -s "all_redhat_packages.txt" ] ; then
-      echo "It's pointless to perform any checks if the previous
-      system did not contain any Red Hat packages, exiting."
+      echo "It's pointless to perform any checks if the previous system did not
+      contain any Red Hat packages, exiting."
       exit 0
     fi
   fi
