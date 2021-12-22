@@ -17,7 +17,7 @@ ARGUMENTS
           their checksums (before migration)
 
 -a        Check what assets remained after migration
-          and remove them"
+          and print them"
 }
 
 # Search for all the files the installed RPMs provide.
@@ -79,8 +79,7 @@ after_migration() {
   if [ -s remaining_assets.txt ]; then
     echo "The following Red Hat files remain after the migration:"
     cat remaining_assets.txt
-    echo "Removing them right now..."
-    sudo xargs rm -f < remaining_assets.txt && echo "Assets removed."
+    echo "They have been logged to the file \"remaining_assets.txt\"."
   else
     echo "Success - no Red Hat files found after migrating to EuroLinux."
   fi
