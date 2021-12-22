@@ -1,13 +1,15 @@
-#!/bin/bash -x
+#!/bin/bash
 # Initially based on Oracle's centos2ol script. Thus licensed under the Universal Permissive License v1.0
 # Copyright (c) 2020, 2021 Oracle and/or its affiliates.
 # Copyright (c) 2021 EuroLinux
 
 set -euo pipefail
 
+# GLOBAL variables
+github_url="https://github.com/EuroLinux/eurolinux-migration-scripts"
+
 beginning_preparations() {
   script_dir="$(dirname $(readlink -f $0))"
-  github_url="https://github.com/EuroLinux/eurolinux-migration-scripts"
   # These are all the packages we need to remove. Some may not reside in
   # this array since they'll be swapped later on once EuroLinux
   # repositories have been added.
