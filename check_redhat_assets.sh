@@ -69,12 +69,12 @@ after_migration() {
   # checksum them will result in an error. So don't abort the script here.
   set +e
     xargs $sum < assets_to_check.txt > assets_checked_after_migration.txt
-  set -e
 
   comm -12 <(sort "assets_checked_before_migration.txt") \
     <(sort "assets_checked_after_migration.txt") | cut -d' ' -f 3 \
     | grep -Ev '^/usr/share/doc/redhat-(release|menus)' | sort \
     > remaining_assets.txt
+  set -e
 
   if [ -s remaining_assets.txt ]; then
     echo "The following Red Hat files remain after the migration:"
