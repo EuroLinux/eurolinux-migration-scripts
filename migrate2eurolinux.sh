@@ -608,12 +608,13 @@ install_el_base() {
   echo "Installing base packages for EuroLinux..."
 
   if [ -n "$path_to_internal_repo_file" ]; then
-    el_base_command='yum shell --disablerepo "certify*" -y'
-  else
-    el_base_command='yum shell -y'
+    # Disabling the repos for offline migration is applicable to EL8 only
+    # since on EL7 the core repos are skipped along with skipping EuroMan
+    # registration. These below are provided by the el-release package.
+    dnf config-manager --disable certify-{baseos,appstream,powertools}
   fi
 
-  if ! $el_base_command <<EOF
+  if ! yum shell -y <<EOF
   remove ${bad_packages[@]}
   install ${base_packages[@]}
   run
@@ -775,6 +776,7 @@ remove_leftovers() {
     rm -f "${reposdir}/switch-to-eurolinux.repo"
   else
     echo "Since a custom repo has been provided, it will be used from now on as ${reposdir}/eurolinux-offline.repo"
+    echo "Reminder: the repos provided by the el-release package are kept as disabled."
     mv "${reposdir}/switch-to-eurolinux.repo" "${reposdir}/eurolinux-offline.repo"
   fi
 
