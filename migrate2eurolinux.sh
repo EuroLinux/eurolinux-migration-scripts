@@ -79,6 +79,12 @@ check_fips() {
   fi
 }
 
+check_secureboot(){
+  if grep -oq 'Secure Boot: enabled' <(bootctl 2>&1) ; then
+    exit_message "You appear to be running a system with Secure Boot enabled, which is not yet supported for migration. Disable it first, then run the script again."
+  fi
+}
+
 generate_rpms_info() {
   # Generate an RPM database log and a list of RPMs installed on your system
   # at any point in time.
@@ -810,6 +816,7 @@ main() {
   # All function calls.
   warning_message
   check_fips
+  check_secureboot
   check_root
   check_required_packages
   check_distro
