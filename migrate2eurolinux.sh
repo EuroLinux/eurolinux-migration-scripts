@@ -608,13 +608,10 @@ force_el_release() {
   set -euo pipefail
 }
 
-install_el_base() {
-  # Remove packages from other Enterprise Linux distros and install ours. It's
-  # vital that this be performed in one go such as with `yum shell` so the
-  # important dependencies are replaced with ours rather than failing to be
-  # removed by a package manager.
-  echo "Installing base packages for EuroLinux..."
-
+disable_el_repos_if_custom_repo_is_provided() {
+  # If a custom repo file is provided, do not use the repos we install with
+  # el-release. This also applies if one wants to use our Vault and migrate
+  # from an Enterprise Linux 8.4 (old version) to EuroLinux 8.4.
   if [ -n "$path_to_internal_repo_file" ]; then
     case "$os_version" in
       8*)
@@ -629,6 +626,14 @@ install_el_base() {
         ;;
     esac
   fi
+}
+
+install_el_base() {
+  # Remove packages from other Enterprise Linux distros and install ours. It's
+  # vital that this be performed in one go such as with `yum shell` so the
+  # important dependencies are replaced with ours rather than failing to be
+  # removed by a package manager.
+  echo "Installing base packages for EuroLinux..."
 
   if ! yum shell -y <<EOF
   remove ${bad_packages[@]}
@@ -848,6 +853,7 @@ main() {
   fix_oracle_shenanigans
   remove_centos_yum_branding
   force_el_release
+  disable_el_repos_if_custom_repo_is_provided
   install_el_base
   update_initrd
   el_distro_sync
