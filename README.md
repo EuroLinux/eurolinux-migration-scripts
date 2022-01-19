@@ -9,6 +9,7 @@ equivalents.
 ## Support
 
 The following distributions are supported on the x86_64 architecture:
+
 - AlmaLinux 8
 - CentOS 7
 - CentOS 8
@@ -19,10 +20,12 @@ The following distributions are supported on the x86_64 architecture:
 - Rocky Linux 8
 - Scientific Linux 7
 
-It is possible to migrate from other release versions such as 8.2 since the
-script should succeed in syncing the packages to EuroLinux equivalents but it's
-not officially supported. Analogically a migration from 7.4 upwards should
-succeed in syncing to EuroLinux 7.9.  
+The system that you want to migrate shall be up-to-date and the script will, by
+default, use the newest packages we provide.   
+If you want to migrate an older release to an older EuroLinux release, take a
+look at the [Switch to an older EuroLinux minor
+release](#switch-to-an-older-eurolinux-minor-release) section.
+
 **If a system has been installed with Secure Boot enabled, make sure that it
 is disabled first before running the script.**
 
@@ -165,6 +168,13 @@ snippet and adjust the ISO image path:
 ```ruby
   #  libvirt.storage :file, :device => :cdrom, :path => "/var/lib/libvirt/images/mirror.iso"
 ```
+
+## Switch to an older EuroLinux minor release
+
+Use the `-r` option and specify the `vault.repo` file in this repository. It's
+an example of a configuration that uses our Vault for installation of older
+packages so you can migrate from an Enterprise Linux 8.4 to EuroLinux 8.4.  
+Adjust the minor release in that file so it suits your needs.
 
 ## Troubleshooting
 
