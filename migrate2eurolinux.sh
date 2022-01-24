@@ -434,26 +434,6 @@ print(my_org)
   fi
 }
 
-remove_distro_gpg_pubkey() {
-  keys="$(rpm -qa --qf '%{nevra} %{packager}\n' gpg-pubkey*)"
-  if [ "$preserve" == "true" ]; then
-    # We need to make sure only the pubkeys of the vendors that provide the
-    # distros we're migrating from are removed and only these. As of today the
-    # solution is to have an array with their emails and make sure the
-    # corresponding pubkeys are removed.
-    bad_providers=('packager@almalinux.org' 'security@centos.org' 'build@oss.oracle.com' 'security@redhat.com' 'infrastructure@rockylinux.org' 'scientific-linux-devel@fnal.gov' )
-    for provider in ${bad_providers[*]} ; do
-      echo "Checking for the existence of gpg-pubkey provider: $provider..."
-      grep -i $provider <<< "$keys" | cut -d' ' -f 1 | xargs rpm -e || true
-    done
-  else
-    # On the other hand if we want to remove everything not related to
-    # EuroLinux, remove all of these keys unless they end with
-    # '@euro-linux.com'
-    grep -v '@euro-linux.com' <<< "$keys" | cut -d' ' -f 1 | xargs rpm -e || true
-  fi
-}
-
 disable_distro_repos() {
 
   # Remove all non-Eurolinux .repo files unless the 'preserve' option has been
@@ -474,7 +454,10 @@ disable_distro_repos() {
   cd "$reposdir"
 
   if [ "$preserve" != "true" ]; then
+    set +e
+    rpm -qf *.repo | grep -v 'is not owned' | sort -u | xargs rpm -e
     rm -f *.repo
+    set -e
     create_temp_el_repo
   else
     cd "$(mktemp -d)"
@@ -780,6 +763,27 @@ compare_all_rpms() {
   set -u
 }
 
+remove_distro_gpg_pubkey() {
+  keys="$(rpm -qa --qf '%{nevra} %{packager}\n' gpg-pubkey*)"
+  if [ "$preserve" == "true" ]; then
+    # We need to make sure only the pubkeys of the vendors that provide the
+    # distros we're migrating from are removed and only these. As of today the
+    # solution is to have an array with their emails and make sure the
+    # corresponding pubkeys are removed.
+    bad_providers=('packager@almalinux.org' 'security@centos.org' 'build@oss.oracle.com' 'security@redhat.com' 'infrastructure@rockylinux.org' 'scientific-linux-devel@fnal.gov' )
+    for provider in ${bad_providers[*]} ; do
+      echo "Checking for the existence of gpg-pubkey provider: $provider..."
+      grep -i $provider <<< "$keys" | cut -d' ' -f 1 | xargs rpm -e || true
+    done
+  else
+    # On the other hand if we want to remove everything not related to
+    # EuroLinux, remove all of these keys unless they end with
+    # '@euro-linux.com'
+    echo "Checking for the existence of non-EuroLinux gpg-pubkeys and removing them..."
+    grep -v '@euro-linux.com' <<< "$keys" | cut -d' ' -f 1 | xargs rpm -e || true
+  fi
+}
+
 update_grub() {
   # Update bootloader entries. Output to a symlink which always points to the
   # proper configuration file.
@@ -848,7 +852,6 @@ main() {
   grab_gpg_keys
   create_temp_el_repo
   register_to_euroman
-  remove_distro_gpg_pubkey
   disable_distro_repos
   fix_oracle_shenanigans
   remove_centos_yum_branding
@@ -862,6 +865,7 @@ main() {
   reinstall_all_rpms
   fix_reinstalled_rpms
   compare_all_rpms
+  remove_distro_gpg_pubkey
   update_grub
   remove_leftovers
   verify_generated_rpms_info
