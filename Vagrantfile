@@ -63,12 +63,12 @@ Vagrant.configure("2") do |config|
 
   config.vm.define "generic-rhel7" do |i|
     i.vm.box = "generic/rhel7"
-    i.vm.hostname = "rhel7"
+    i.vm.hostname = "generic-rhel7"
   end
 
   config.vm.define "generic-rhel8" do |i|
     i.vm.box = "generic/rhel8"
-    i.vm.hostname = "rhel8"
+    i.vm.hostname = "generic-rhel8"
   end
 
   config.vm.define "rockylinux8-4" do |i|
