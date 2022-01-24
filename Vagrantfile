@@ -2,7 +2,7 @@
 # vi: set ft=ruby :
 
 Vagrant.configure("2") do |config|
-  config.vm.box_check_update = false
+  config.vm.box_check_update = true
   config.vm.synced_folder '.', '/vagrant', disabled: true
   config.vm.provision :file, source: File.expand_path('../', __FILE__), destination: '/home/vagrant/eurolinux-migration-scripts'
   config.vm.provider "libvirt" do |libvirt|
