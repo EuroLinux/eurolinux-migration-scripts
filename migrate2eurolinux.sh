@@ -452,6 +452,7 @@ check_el_repos_connectivity() {
             |& grep --color=auto 'error: Status code: 404' && final_failure
           ;;
         7*)
+          echo "(The connectivity check may take a long time on Enterprise Linux 7.)"
           yum --verbose --disablerepo="*" --enablerepo={fbi,el-server-7-x86_64} makecache \
             |& grep --color=auto 'HTTPS Error 404 - Not Found' && final_failure
           ;;
