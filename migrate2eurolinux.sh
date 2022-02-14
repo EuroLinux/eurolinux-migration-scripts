@@ -434,6 +434,26 @@ print(my_org)
   fi
 }
 
+check_el_repos_connectivity() {
+  # Perform a `yum makecache` to check if we can successfully connect to
+  # EuroLinux repositories. Just an additional check for safety in case there's
+  # something going on with the connection so we know in advance to fix it now
+  # rather than later.
+  if [ ! -n "$path_to_internal_repo_file" ]; then
+    echo "Checking EuroLinux repositories connectivity..."
+    trap final_failure ERR
+    case "$os_version" in
+      8*|9*)
+        yum --disablerepo="*" --enablerepo=certify-{baseos,appstream,powertools} makecache
+        ;;
+      7*)
+        yum --disablerepo="*" --enablerepo={fbi,el-server-7-x86_64} makecache
+        ;;
+    esac
+    trap - ERR
+  fi
+}
+
 disable_distro_repos() {
 
   # Remove all non-Eurolinux .repo files unless the 'preserve' option has been
@@ -852,6 +872,7 @@ main() {
   grab_gpg_keys
   create_temp_el_repo
   register_to_euroman
+  check_el_repos_connectivity
   disable_distro_repos
   fix_oracle_shenanigans
   remove_centos_yum_branding
