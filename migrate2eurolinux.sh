@@ -439,18 +439,24 @@ check_el_repos_connectivity() {
   # EuroLinux repositories. Just an additional check for safety in case there's
   # something going on with the connection so we know in advance to fix it now
   # rather than later.
+  # The commands mentioned appear to return 0 anyway on Enterprise Linux 8 so
+  # we need an additional logic for checking for 404s rather than relying on
+  # status codes. The same logic has been applied for Enterprise Linux 7 for
+  # consistency.
   if [ ! -n "$path_to_internal_repo_file" ]; then
     echo "Checking EuroLinux repositories connectivity..."
-    trap final_failure ERR
-    case "$os_version" in
-      8*|9*)
-        yum --disablerepo="*" --enablerepo=certify-{baseos,appstream,powertools} makecache
-        ;;
-      7*)
-        yum --disablerepo="*" --enablerepo={fbi,el-server-7-x86_64} makecache
-        ;;
-    esac
-    trap - ERR
+      set +euo pipefail
+      case "$os_version" in
+        8*|9*)
+          yum --verbose --disablerepo="*" --enablerepo=certify-{baseos,appstream,powertools} makecache \
+            |& grep --color=auto 'error: Status code: 404' && final_failure
+          ;;
+        7*)
+          yum --verbose --disablerepo="*" --enablerepo={fbi,el-server-7-x86_64} makecache \
+            |& grep --color=auto 'HTTPS Error 404 - Not Found' && final_failure
+          ;;
+      esac
+      set -euo pipefail
   fi
 }
 
