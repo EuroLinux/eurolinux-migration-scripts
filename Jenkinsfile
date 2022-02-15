@@ -98,7 +98,7 @@ pipeline {
                                   sh("vagrant ssh $vagrant_machine -c \"sudo /home/vagrant/eurolinux-migration-scripts/migrate2eurolinux.sh -f -v && sudo reboot\" || true")
                                   sh("echo 'Waiting 5 minutes for the box to warm up and for the kernel-removing systemd service to finish its job...'")
                                   sh("sleep 300")
-                                  sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/test_what_non_el_remains_after_migration.sh'")
+                                  sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/test_what_non_el_remains_after_migration.sh -t'")
                                   sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -a' || true")
                                   sh("vagrant destroy $vagrant_machine -f")
                               }
@@ -120,7 +120,7 @@ pipeline {
                                   sh("vagrant ssh $vagrant_machine -c \"sudo /home/vagrant/eurolinux-migration-scripts/migrate2eurolinux.sh -f -v -u $EUROMAN_CREDENTIALS_USR -p $EUROMAN_CREDENTIALS_PSW && sudo reboot\" || true")
                                   sh("echo 'Waiting 5 minutes for the box to warm up and for the kernel-removing systemd service to finish its job...'")
                                   sh("sleep 300")
-                                  sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/test_what_non_el_remains_after_migration.sh'")
+                                  sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/test_what_non_el_remains_after_migration.sh -t'")
                                   sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -a' || true")
                                   sh("vagrant destroy $vagrant_machine -f")
                               }
@@ -142,7 +142,7 @@ pipeline {
                                   sh("vagrant ssh $vagrant_machine -c \"sudo /home/vagrant/eurolinux-migration-scripts/migrate2eurolinux.sh -r /home/vagrant/eurolinux-migration-scripts/vault.repo -f -v && sudo reboot\" || true")
                                   sh("echo 'Waiting 5 minutes for the box to warm up and for the kernel-removing systemd service to finish its job...'")
                                   sh("sleep 300")
-                                  sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/test_what_non_el_remains_after_migration.sh'")
+                                  sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/test_what_non_el_remains_after_migration.sh -t'")
                                   sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -a' || true")
                                   sh("vagrant destroy $vagrant_machine -f")
                               }
