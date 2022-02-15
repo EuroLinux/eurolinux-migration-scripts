@@ -7,6 +7,7 @@ Check url: ${currentBuild.absoluteUrl}.
 def supported_8_machine_names = ["almalinux8", "centos8", "generic-rhel8", "oracle8", "rhel8", "rockylinux8"]
 def supported_7_machine_names = ["centos7", "generic-rhel7", "oracle7", "rhel7", "scientific7"]
 
+
 pipeline {
     agent {
         node {
@@ -76,6 +77,7 @@ pipeline {
                           }]
                       }
                   }
+
                 }
             }
         }

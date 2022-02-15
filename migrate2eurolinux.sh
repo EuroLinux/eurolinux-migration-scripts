@@ -79,6 +79,12 @@ check_fips() {
   fi
 }
 
+check_secureboot(){
+  if grep -oq 'Secure Boot: enabled' <(bootctl 2>&1) ; then
+    exit_message "You appear to be running a system with Secure Boot enabled, which is not yet supported for migration. Disable it first, then run the script again."
+  fi
+}
+
 generate_rpms_info() {
   # Generate an RPM database log and a list of RPMs installed on your system
   # at any point in time.
@@ -161,7 +167,7 @@ prepare_pre_migration_environment() {
   # approaches and tweaks. Store these details for later use.
   os_version=$(rpm -q "${old_release}" --qf "%{version}")
   major_os_version=${os_version:0:1}
-  base_packages=(basesystem el-logos el-release grub2 grubby initscripts plymouth)
+  base_packages=(basesystem grub2 grubby initscripts plymouth)
   case "${old_release}" in
     redhat-release*)
       echo "RHEL detected. Checking subscription status..."
@@ -172,6 +178,8 @@ prepare_pre_migration_environment() {
 keys, certificates, etc. if necessary and remove the system from subscription
 management service with 'subscription-manager unregister', then run this script again."
       fi
+      echo "Unprotecting Red Hat-related assets..."
+      rm -f /etc/yum/protected.d/{redhat-release,setup}.conf
       ;;
   esac
   if [ "$preserve" != "true" ]; then
@@ -572,31 +580,51 @@ fix_oracle_shenanigans() {
 force_el_release() {
   # Get yumdownloader if applicable and force and installation of el-release,
   # removing the current release provider package.
-  if ! command -v yumdownloader; then
+  set +euo pipefail
+  case "$os_version" in
+      8*)
+        : # 'yum-utils' already provided my dnf, skipping
+        dnf download el-release
+        ;;
+      7*)
+        echo "Looking for yumdownloader..."
+        yum -y install yum-utils
+        yumdownloader el-release
+        dep_check yumdownloader
+        ;;
+  esac
+  for i in "${bad_packages[@]}" ; do rpm -e --nodeps "$i" || true ; done
+
+  # Additional tweak for RHEL 8 - remove these directories manually.
+  # Otherwise an error will show up:
+  # error: unpacking of archive failed on file [...]: cpio: File from 
+  # package already exists as a directory in system
+  if [[ "$old_release" =~ redhat-release ]]; then
+    echo "RHEL detected - removing 'redhat-release*' directories manually."
+    rm -rf /usr/share/doc/redhat-release* /usr/share/redhat-release*
+  fi
+
+  rpm -i --force el-release*
+  set -euo pipefail
+}
+
+disable_el_repos_if_custom_repo_is_provided() {
+  # If a custom repo file is provided, do not use the repos we install with
+  # el-release. This also applies if one wants to use our Vault and migrate
+  # from an Enterprise Linux 8.4 (old version) to EuroLinux 8.4.
+  if [ -n "$path_to_internal_repo_file" ]; then
     case "$os_version" in
-        8*)
-          : # 'yum-utils' already provided my dnf, skipping
-          dnf download el-release
-          ;;
-        7*)
-          echo "Looking for yumdownloader..."
-          yum -y install yum-utils
-          yumdownloader el-release
-          dep_check yumdownloader
-          ;;
+      8*)
+        # Disabling the repos for offline migration is applicable to EL8 only
+        # since on EL7 the core repos are skipped along with skipping EuroMan
+        # registration. These below are provided by the el-release package.
+        echo "Disabling the EuroLinux 8-provided repos for offline migration..."
+        dnf config-manager --disable certify-{baseos,appstream,powertools}
+        ;;
+      7*)
+        echo "EuroLinux 7 core repos have been already skipped along with skipping EuroMan registration by using a custom .repo"
+        ;;
     esac
-    for i in "${bad_packages[@]}" ; do rpm -e --nodeps "$i" || true ; done
-
-    # Additional tweak for RHEL 8 - remove these directories manually.
-    # Otherwise an error will show up:
-    # error: unpacking of archive failed on file [...]: cpio: File from 
-    # package already exists as a directory in system
-    if [[ "$old_release" =~ redhat-release-8 ]]; then
-      echo "RHEL 8 detected - removing 'redhat-release*' directories manually."
-      rm -rf /usr/share/doc/redhat-release* /usr/share/redhat-release*
-    fi
-
-    rpm -i --force el-release*
   fi
 }
 
@@ -607,13 +635,7 @@ install_el_base() {
   # removed by a package manager.
   echo "Installing base packages for EuroLinux..."
 
-  if [ -n "$path_to_internal_repo_file" ]; then
-    el_base_command='yum shell --disablerepo "certify*" -y'
-  else
-    el_base_command='yum shell -y'
-  fi
-
-  if ! $el_base_command <<EOF
+  if ! yum shell -y <<EOF
   remove ${bad_packages[@]}
   install ${base_packages[@]}
   run
@@ -775,6 +797,7 @@ remove_leftovers() {
     rm -f "${reposdir}/switch-to-eurolinux.repo"
   else
     echo "Since a custom repo has been provided, it will be used from now on as ${reposdir}/eurolinux-offline.repo"
+    echo "Reminder: the repos provided by the el-release package are kept as disabled."
     mv "${reposdir}/switch-to-eurolinux.repo" "${reposdir}/eurolinux-offline.repo"
   fi
 
@@ -810,6 +833,7 @@ main() {
   # All function calls.
   warning_message
   check_fips
+  check_secureboot
   check_root
   check_required_packages
   check_distro
@@ -829,6 +853,7 @@ main() {
   fix_oracle_shenanigans
   remove_centos_yum_branding
   force_el_release
+  disable_el_repos_if_custom_repo_is_provided
   install_el_base
   update_initrd
   el_distro_sync
