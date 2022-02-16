@@ -27,10 +27,11 @@ if [[ -n "${non_eurolinux_rpms_and_metadata[*]}" ]]; then
     echo "Checking for the presence of packages that come from the migratable systems..."
     bad_providers_pattern="\|AlmaLinux\||\|CentOS\||\|Oracle_America\||\|Red_Hat,_Inc\.\||\|Rocky\|"
     if grep -E "$bad_providers_pattern" <<< "${non_eurolinux_rpms_and_metadata[@]}" ; then
-      echo "^^^ the packages above still remain - the migration is not considered as 100% complete. Please remove them manually."
+      echo "^ the packages above still remain - the migration is not considered as 100% complete. Please remove them manually."
       exit 1
     else
       echo "(none, the migration removed all packages from migratable systems)"
+      exit 0
     fi
   else
     echo "Since the test requires that no thirdparty packages be present on the system, we consider this result as a failure."
