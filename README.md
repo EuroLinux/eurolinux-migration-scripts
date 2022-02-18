@@ -111,8 +111,8 @@ additional script has been created: *remove_kernels.sh*.
 The script will be launched automatically if a system has already successfully
 migrated to EuroLinux. That **standalone script's** default behavior is to
 remove everything that is not provided by EuroLinux but if running manually or
-via migrate2linux.sh with the `-w` option, the user can specify, if they want
-to remove only the kernels their old distro provided or all non-EuroLinux
+via migrate2eurolinux.sh with the `-w` option, the user can specify, if they
+want to remove only the kernels their old distro provided or all non-EuroLinux
 kernels and related packages - those from third-party repositories among
 others. Or if they want to perform a dry-run for listing, what would happen.
 
