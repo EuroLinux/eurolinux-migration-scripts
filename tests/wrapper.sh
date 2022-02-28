@@ -61,12 +61,12 @@ done
 
 # Perform tests per each box
 for box in ${boxes[*]}; do
-  vagrant rsync "$box"
   # Run the tests by executing the already-rsynced run_migration_test.sh
   # script that will take care of the actual execution of the tests with
   # everything happening in a box and skipping problematic tests per distro.
   vagrant ssh "$box" -c \
-    "cd /vagrant/tests && ./run_migration_test.sh ${tests[*]}" \
+    "cd /home/vagrant/eurolinux-migration-scripts/tests && \
+      ./run_migration_test.sh ${tests[*]}" \
       | tee -a "${box}_migration_tests.log"
 done
 
