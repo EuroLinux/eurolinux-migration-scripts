@@ -1,7 +1,7 @@
 #!/bin/bash
 # Initially based on Oracle's centos2ol script. Thus licensed under the Universal Permissive License v1.0
 # Copyright (c) 2020, 2021 Oracle and/or its affiliates.
-# Copyright (c) 2021 EuroLinux
+# Copyright (c) 2021, 2022 EuroLinux
 
 set -euo pipefail
 
@@ -223,7 +223,7 @@ check_systemwide_python() {
   # replacing a system-wide Python 2 with 3).
   echo "Checking for required Python packages..."
   case "$os_version" in
-    8*)
+    8*|9*)
       dep_check /usr/libexec/platform-python
       ;;
     *)
@@ -236,7 +236,7 @@ find_repos_directory() {
   # Store your package manager's repositories directory for later use.
   echo "Finding your repository directory..."
   case "$os_version" in
-    8*)
+    8*|9*)
       reposdir=$(/usr/libexec/platform-python -c "
 import dnf
 import os
@@ -267,7 +267,7 @@ find_enabled_repos() {
   # Store your package manager's enabled repositories for later use.
   echo "Learning which repositories are enabled..."
   case "$os_version" in
-    8*)
+    8*|9*)
       enabled_repos=$(/usr/libexec/platform-python -c "
 import dnf
 
@@ -316,30 +316,55 @@ create_temp_el_repo() {
     cd "$reposdir"
     echo "Creating a temporary repo file for migration..."
     case "$os_version" in
+      9*)
+        cat > "switch-to-eurolinux.repo" <<-EOF
+[certify-baseos]
+name = EuroLinux beta BaseOS
+baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/${major_os_version}/\$basearch/certify-beta-BaseOS/os
+enabled=1
+gpgcheck=0
+skip_if_unavailable=1
+
+[certify-appstream]
+name = EuroLinux beta AppStream
+baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/${major_os_version}/\$basearch/certify-beta-AppStream/os
+enabled=1
+gpgcheck=0
+skip_if_unavailable=1
+
+[certify-powertools]
+name = EuroLinux beta PowerTools
+baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/${major_os_version}/\$basearch/certify-beta-PowerTools/os
+enabled=1
+gpgcheck=0
+skip_if_unavailable=1
+
+EOF
+        ;;
       8*)
-        cat > "switch-to-eurolinux.repo" <<-'EOF'
+        cat > "switch-to-eurolinux.repo" <<-EOF
 [certify-baseos]
 name = EuroLinux certify BaseOS
-baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/8/$basearch/certify-BaseOS/os
+baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/${major_os_version}/\$basearch/certify-BaseOS/os
 enabled=1
 gpgcheck=1
-gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-eurolinux8
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-eurolinux${major_os_version}
 skip_if_unavailable=1
 
 [certify-appstream]
 name = EuroLinux certify AppStream
-baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/8/$basearch/certify-AppStream/os
+baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/${major_os_version}/\$basearch/certify-AppStream/os
 enabled=1
 gpgcheck=1
-gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-eurolinux8
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-eurolinux${major_os_version}
 skip_if_unavailable=1
 
 [certify-powertools]
 name = EuroLinux certify PowerTools
-baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/8/$basearch/certify-PowerTools/os
+baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/${major_os_version}/\$basearch/certify-PowerTools/os
 enabled=1
 gpgcheck=1
-gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-eurolinux8
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-eurolinux${major_os_version}
 skip_if_unavailable=1
 
 EOF
@@ -380,8 +405,8 @@ register_to_euroman() {
   if [ -z "$path_to_internal_repo_file" ]; then
     echo "Registering to EuroMan if applicable..."
     case "$os_version" in
-      8*) 
-        echo "EuroLinux 8 is Open Core, not registering."
+      8*|9*)
+        echo "EuroLinux ${major_os_version} is Open Core, not registering."
         ;;
       *)
         if [ -z ${el_euroman_user+x} ]; then 
@@ -504,6 +529,7 @@ disable_distro_repos() {
     esac
 
     echo "Backing up and removing old repository files..."
+    > repo_files
 
     # ... this one should apply to any Enterprise Linux except RHEL:
     echo "Identify repo files from the base OS..."
@@ -592,7 +618,7 @@ force_el_release() {
   # removing the current release provider package.
   set +euo pipefail
   case "$os_version" in
-      8*)
+      8*|9*)
         : # 'yum-utils' already provided my dnf, skipping
         dnf download el-release
         ;;
@@ -624,7 +650,7 @@ disable_el_repos_if_custom_repo_is_provided() {
   # from an Enterprise Linux 8.4 (old version) to EuroLinux 8.4.
   if [ -n "$path_to_internal_repo_file" ]; then
     case "$os_version" in
-      8*)
+      8*|9*)
         # Disabling the repos for offline migration is applicable to EL8 only
         # since on EL7 the core repos are skipped along with skipping EuroMan
         # registration. These below are provided by the el-release package.
