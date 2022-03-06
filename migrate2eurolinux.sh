@@ -448,12 +448,12 @@ check_el_repos_connectivity() {
       set +euo pipefail
       case "$os_version" in
         8*|9*)
-          yum --verbose --disablerepo="*" --enablerepo=certify-{baseos,appstream,powertools} makecache \
+          yum --verbose --refresh --disablerepo="*" --enablerepo=certify-{baseos,appstream,powertools} makecache \
             |& grep --color=auto 'error: Status code: 404' && final_failure
           ;;
         7*)
           echo "(The connectivity check may take a long time on Enterprise Linux 7.)"
-          yum --verbose --disablerepo="*" --enablerepo={fbi,el-server-7-x86_64} makecache \
+          yum --verbose --refresh --disablerepo="*" --enablerepo={fbi,el-server-7-x86_64} makecache \
             |& grep --color=auto 'HTTPS Error 404 - Not Found' && final_failure
           ;;
       esac
