@@ -1,7 +1,7 @@
 #!/bin/bash
 # Initially based on Oracle's centos2ol script. Thus licensed under the Universal Permissive License v1.0
 # Copyright (c) 2020, 2021 Oracle and/or its affiliates.
-# Copyright (c) 2021 EuroLinux
+# Copyright (c) 2021, 2022 EuroLinux
 
 set -euo pipefail
 
@@ -316,7 +316,32 @@ create_temp_el_repo() {
     cd "$reposdir"
     echo "Creating a temporary repo file for migration..."
     case "$os_version" in
-      8*|9*)
+      9*)
+        cat > "switch-to-eurolinux.repo" <<-EOF
+[certify-baseos]
+name = EuroLinux beta BaseOS
+baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/${major_os_version}/\$basearch/certify-beta-BaseOS/os
+enabled=1
+gpgcheck=0
+skip_if_unavailable=1
+
+[certify-appstream]
+name = EuroLinux beta AppStream
+baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/${major_os_version}/\$basearch/certify-beta-AppStream/os
+enabled=1
+gpgcheck=0
+skip_if_unavailable=1
+
+[certify-powertools]
+name = EuroLinux beta PowerTools
+baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/${major_os_version}/\$basearch/certify-beta-PowerTools/os
+enabled=1
+gpgcheck=0
+skip_if_unavailable=1
+
+EOF
+        ;;
+      8*)
         cat > "switch-to-eurolinux.repo" <<-EOF
 [certify-baseos]
 name = EuroLinux certify BaseOS
@@ -504,6 +529,7 @@ disable_distro_repos() {
     esac
 
     echo "Backing up and removing old repository files..."
+    > repo_files
 
     # ... this one should apply to any Enterprise Linux except RHEL:
     echo "Identify repo files from the base OS..."
