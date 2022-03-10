@@ -197,3 +197,9 @@ Error: Transaction failed
 Most likely you performed an offline migration with an ISO image (or a
 different file) mounted directly at */mnt*. Make sure that only its
 subdirectories are used as mount points.
+
+## Temporary secureboot fix
+
+```bash
+sudo ./migrate2eurolinux.sh -w -s -f -r eurolinux-and-alma-kernel.repo
+```

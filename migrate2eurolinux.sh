@@ -12,6 +12,7 @@ path_to_internal_repo_file=""
 preserve="true"
 script_dir="$(dirname $(readlink -f $0))"
 skip_verification="false"
+external_secure_boot="false"
 skip_warning=""
 # These are all the packages we need to remove. Some may not reside in this
 # array since they'll be swapped later on once EuroLinux repositories have been
@@ -28,6 +29,7 @@ usage() {
     echo "-r      Use a custom .repo file (for offline migration)"
     echo "-v      Don't verify RPMs"
     echo "-w      Remove all detectable non-EuroLinux extras"
+    echo "-s      enable secure boot with external bootchain (temporary fix)"
     echo "        (e.g. third-party repositories and backed-up .repo files)"
     echo
     echo "OPTIONS applicable to Enterprise Linux 7 or older"
@@ -40,7 +42,7 @@ warning_message() {
   # Display a warning message about backups unless running non-interactively
   # (assumed default behavior).
   if [ "$skip_warning" != "true" ]; then
-    echo "This script will migrate your existing Enterprise Linux system to EuroLinux. Extra precautions have been arranged but there's always the risk of something going wrong in the process and users are always recommended to make a backup."
+    echo "This script will migrate your existing Enterprise Linux system to EuroLinux. Extra precautions have been arranged but there's always the risk of something going wrong in the rocess and users are always recommended to make a backup."
     echo "Do you want to continue? Type 'YES' if that's the case."
     read answer
     if [[ ! "$answer" =~ ^[Yy][Ee][Ss]$ ]]; then
@@ -80,8 +82,13 @@ check_fips() {
 }
 
 check_secureboot(){
-  if grep -oq 'Secure Boot: enabled' <(bootctl 2>&1) ; then
+  if grep -oq 'Secure Boot: enabled' <(bootctl 2>&1) && [ "$external_secure_boot" == "false" ]; then
     exit_message "You appear to be running a system with Secure Boot enabled, which is not yet supported for migration. Disable it first, then run the script again."
+  elif [ "$external_secure_boot" == "true" ]; then
+    echo "Use external secure_boot"
+      if [ -z "$path_to_internal_repo_file" ]; then
+        echo "External secure boot requires external repo file"
+      fi
   fi
 }
 
@@ -634,6 +641,9 @@ install_el_base() {
   # important dependencies are replaced with ours rather than failing to be
   # removed by a package manager.
   echo "Installing base packages for EuroLinux..."
+  if [ "$external_secure_boot" == "true" ]; then
+    yum reinstall -y --nobest setup
+  fi
 
   if ! yum shell -y <<EOF
   remove ${bad_packages[@]}
@@ -818,16 +828,35 @@ verify_generated_rpms_info() {
 remove_kernels_and_related_packages() {
   # The answer on what to remove
   # See the remove_kernels.sh's usage() for more information.
+  if [ "$external_secure_boot" == "true" ]; then
+	  return
+  fi
   [ "$preserve" == "true" ] && removal_answer=3 || removal_answer=2
   echo "Running ./remove_kernels.sh -a $removal_answer..."
   cd "$script_dir"
   ./remove_kernels.sh -a $removal_answer
 }
 
-congratulations() {
-  echo "Switch almost complete. EuroLinux recommends rebooting this system.
-Once booted up, a background service will perform a further kernel removal."
+disable_certify_if_offline(){
+    if [ -z "$path_to_internal_repo_file" ]; then
+        echo "offline migration - disabling eurolinux certify.repo"
+        sed -i 's/enabled=1/enabled=0/' /etc/yum.repos.d/certify.repo
+    fi
 }
+
+fix_secure_boot(){
+    if [ "$external_secure_boot" != "true" ]; then
+        return
+    fi
+}
+
+congratulations() {
+  echo "Switch almost complete. EuroLinux recommends rebooting this system."
+  if [ $external_secure_boot != "false" ]; then
+    echo "Once booted up, a background service will perform a further kernel removal."
+  fi
+}
+
 
 main() {
   # All function calls.
@@ -865,11 +894,13 @@ main() {
   update_grub
   remove_leftovers
   verify_generated_rpms_info
+  disable_certify_if_offline
   remove_kernels_and_related_packages
+  fix_secure_boot
   congratulations
 }
 
-while getopts "fhp:r:u:vw" option; do
+while getopts "sfhp:r:u:vw" option; do
     case "$option" in
         f) skip_warning="true" ;;
         h) usage ;;
@@ -878,6 +909,7 @@ while getopts "fhp:r:u:vw" option; do
         u) el_euroman_user="$OPTARG" ;;
         v) skip_verification="true" ;;
         w) preserve="false" ;;
+        s) external_secure_boot="true" ;;
         *) usage ;;
     esac
 done
