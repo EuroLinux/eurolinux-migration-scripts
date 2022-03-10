@@ -894,8 +894,8 @@ main() {
   update_grub
   remove_leftovers
   verify_generated_rpms_info
-  disable_certify_if_offline
   remove_kernels_and_related_packages
+  disable_certify_if_offline
   fix_secure_boot
   congratulations
 }
