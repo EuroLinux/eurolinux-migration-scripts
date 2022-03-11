@@ -201,5 +201,5 @@ subdirectories are used as mount points.
 ## Temporary secureboot fix
 
 ```bash
-sudo ./migrate2eurolinux.sh -w -s -f -r eurolinux-and-alma-kernel.repo
+sudo ./migrate2eurolinux.sh -s -f -r eurolinux-and-alma-kernel.repo
 ```
