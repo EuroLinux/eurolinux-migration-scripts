@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 # Initially based on Oracle's centos2ol script. Thus licensed under the Universal Permissive License v1.0
 # Copyright (c) 2020, 2021 Oracle and/or its affiliates.
 # Copyright (c) 2021, 2022 EuroLinux
@@ -82,6 +82,12 @@ check_fips() {
 check_secureboot(){
   if grep -oq 'Secure Boot: enabled' <(bootctl 2>&1) ; then
     exit_message "You appear to be running a system with Secure Boot enabled, which is not yet supported for migration. Disable it first, then run the script again."
+  fi
+}
+
+check_mdraid() {
+  if ls /dev/md* ; then
+    exit_message "^ You appear to be running a system on software RAID. Migration from such a system needs to be tested out thoroughly and is not yet officially supported."
   fi
 }
 
@@ -837,12 +843,25 @@ remove_distro_gpg_pubkey() {
   fi
 }
 
-update_grub() {
-  # Update bootloader entries. Output to a symlink which always points to the
-  # proper configuration file.
-  [ -d /sys/firmware/efi ] && grub2_conf="/etc/grub2-efi.cfg" || grub2_conf="/etc/grub2.cfg"
+update_bootloader() {
+  # Update bootloader entries and EFI boot if appropriate.
+  if [ -d /sys/firmware/efi ]; then
+    echo "Performing preliminary tasks for updating EFI boot..."
+    yum install -y efibootmgr findmnt grub2-efi-x64 mokutil shim-x64
+    grub2_conf="/etc/grub2-efi.cfg"
+    efi_device="$(findmnt --noheadings --mountpoint /boot/efi --output source)"
+    efi_kname="$(lsblk -dno kname $efi_device)"
+    efi_pkname="$(lsblk -dno pkname $efi_device)"
+    efi_partition="$(cat /sys/block/$efi_pkname/$efi_kname/partition)" # Should be "1" by default but let's check just in case...
+  else
+    grub2_conf="/etc/grub2.cfg"
+  fi
   echo "Updating the GRUB2 bootloader at $grub2_conf (symlinked to $(readlink $grub2_conf))."
   grub2-mkconfig -o "$grub2_conf"
+  if [ -d /sys/firmware/efi ]; then
+    echo "Updating EFI boot."
+    efibootmgr -c -d "/dev/$efi_pkname" -l "/EFI/eurolinux/shimx64.efi" -L "EuroLinux $major_os_version" -p "$efi_partition" -v
+  fi
 }
 
 remove_leftovers() {
@@ -875,10 +894,11 @@ verify_generated_rpms_info() {
 remove_kernels_and_related_packages() {
   # The answer on what to remove
   # See the remove_kernels.sh's usage() for more information.
-  [ "$preserve" == "true" ] && removal_answer=3 || removal_answer=2
-  echo "Running ./remove_kernels.sh -a $removal_answer..."
-  cd "$script_dir"
-  ./remove_kernels.sh -a $removal_answer
+  #[ "$preserve" == "true" ] && removal_answer=3 || removal_answer=2
+  #echo "Running ./remove_kernels.sh -a $removal_answer..."
+  #cd "$script_dir"
+  #./remove_kernels.sh -a $removal_answer
+  echo "Automatic kernel removal disabled - it will be enabled again once EFI updates have been tested out thoroughly"
 }
 
 congratulations() {
@@ -891,6 +911,7 @@ main() {
   warning_message
   check_fips
   check_secureboot
+  check_mdraid
   check_root
   check_required_packages
   check_distro
@@ -920,7 +941,7 @@ main() {
   fix_reinstalled_rpms
   compare_all_rpms
   remove_distro_gpg_pubkey
-  update_grub
+  update_bootloader
   remove_leftovers
   verify_generated_rpms_info
   remove_kernels_and_related_packages
