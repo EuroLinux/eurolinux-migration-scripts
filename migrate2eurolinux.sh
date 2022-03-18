@@ -847,7 +847,7 @@ update_bootloader() {
   # Update bootloader entries and EFI boot if appropriate.
   if [ -d /sys/firmware/efi ]; then
     echo "Performing preliminary tasks for updating EFI boot..."
-    yum install -y efibootmgr findmnt grub2-efi-x64 mokutil shim-x64
+    yum install -y efibootmgr grub2-efi-x64 mokutil shim-x64
     grub2_conf="/etc/grub2-efi.cfg"
     efi_device="$(findmnt --noheadings --mountpoint /boot/efi --output source)"
     efi_kname="$(lsblk -dno kname $efi_device)"
