@@ -849,7 +849,7 @@ update_bootloader() {
     echo "Performing preliminary tasks for updating EFI boot..."
     yum install -y efibootmgr grub2-efi-x64 mokutil shim-x64
     grub2_conf="/etc/grub2-efi.cfg"
-    efi_device="$(findmnt --noheadings --mountpoint /boot/efi --output source)"
+    efi_device="$(findmnt --noheadings --target /boot/efi --output source)"
     efi_kname="$(lsblk -dno kname $efi_device)"
     efi_pkname="$(lsblk -dno pkname $efi_device)"
     efi_partition="$(cat /sys/block/$efi_pkname/$efi_kname/partition)" # Should be "1" by default but let's check just in case...
