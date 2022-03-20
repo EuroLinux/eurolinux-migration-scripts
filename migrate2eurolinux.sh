@@ -894,11 +894,10 @@ verify_generated_rpms_info() {
 remove_kernels_and_related_packages() {
   # The answer on what to remove
   # See the remove_kernels.sh's usage() for more information.
-  #[ "$preserve" == "true" ] && removal_answer=3 || removal_answer=2
-  #echo "Running ./remove_kernels.sh -a $removal_answer..."
-  #cd "$script_dir"
-  #./remove_kernels.sh -a $removal_answer
-  echo "Automatic kernel removal disabled - it will be enabled again once EFI updates have been tested out thoroughly"
+  [ "$preserve" == "true" ] && removal_answer=3 || removal_answer=2
+  echo "Running ./remove_kernels.sh -a $removal_answer..."
+  cd "$script_dir"
+  ./remove_kernels.sh -a $removal_answer
 }
 
 congratulations() {
