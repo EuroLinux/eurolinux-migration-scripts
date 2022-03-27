@@ -1,7 +1,7 @@
-#!/bin/bash
+#!/bin/bash -x
 # Initially based on Oracle's centos2ol script. Thus licensed under the Universal Permissive License v1.0
 # Copyright (c) 2020, 2021 Oracle and/or its affiliates.
-# Copyright (c) 2021 EuroLinux
+# Copyright (c) 2021, 2022 EuroLinux
 
 set -euo pipefail
 
@@ -16,7 +16,7 @@ skip_warning=""
 # These are all the packages we need to remove. Some may not reside in this
 # array since they'll be swapped later on once EuroLinux repositories have been
 # added.
-bad_packages=(almalinux-backgrounds almalinux-backgrounds-extras almalinux-indexhtml almalinux-logos almalinux-release almalinux-release-opennebula-addons bcache-tools btrfs-progs centos-backgrounds centos-gpg-keys centos-indexhtml centos-linux-release centos-linux-repos centos-logos centos-release centos-release-advanced-virtualization centos-release-ansible26 centos-release-ansible-27 centos-release-ansible-28 centos-release-ansible-29 centos-release-azure centos-release-ceph-jewel centos-release-ceph-luminous centos-release-ceph-nautilus centos-release-ceph-octopus centos-release-configmanagement centos-release-cr centos-release-dotnet centos-release-fdio centos-release-gluster40 centos-release-gluster41 centos-release-gluster5 centos-release-gluster6 centos-release-gluster7 centos-release-gluster8 centos-release-gluster-legacy centos-release-messaging centos-release-nfs-ganesha28 centos-release-nfs-ganesha30 centos-release-nfv-common centos-release-nfv-openvswitch centos-release-openshift-origin centos-release-openstack-queens centos-release-openstack-rocky centos-release-openstack-stein centos-release-openstack-train centos-release-openstack-ussuri centos-release-opstools centos-release-ovirt42 centos-release-ovirt43 centos-release-ovirt44 centos-release-paas-common centos-release-qemu-ev centos-release-qpid-proton centos-release-rabbitmq-38 centos-release-samba411 centos-release-samba412 centos-release-scl centos-release-scl-rh centos-release-storage-common centos-release-virt-common centos-release-xen centos-release-xen-410 centos-release-xen-412 centos-release-xen-46 centos-release-xen-48 centos-release-xen-common centos-repos desktop-backgrounds-basic insights-client libreport-centos libreport-plugin-mantisbt libreport-plugin-rhtsupport libreport-rhel libreport-rhel-anaconda-bugzilla libreport-rhel-bugzilla oracle-backgrounds oracle-epel-release-el8 oracle-indexhtml oraclelinux-release oraclelinux-release-el7 oraclelinux-release-el8 oracle-logos python3-dnf-plugin-ulninfo python3-syspurpose python-oauth redhat-backgrounds Red_Hat_Enterprise_Linux-Release_Notes-7-en-US redhat-indexhtml redhat-logos redhat-release redhat-release-eula redhat-release-server redhat-support-lib-python redhat-support-tool rocky-backgrounds rocky-gpg-keys rocky-indexhtml rocky-logos rocky-obsolete-packages rocky-release rocky-repos sl-logos uname26 yum-conf-extras yum-conf-repos)
+bad_packages=(almalinux-backgrounds almalinux-backgrounds-extras almalinux-indexhtml almalinux-logos almalinux-release almalinux-release-opennebula-addons bcache-tools btrfs-progs centos-backgrounds centos-gpg-keys centos-indexhtml centos-linux-release centos-linux-repos centos-logos centos-release centos-release-advanced-virtualization centos-release-ansible26 centos-release-ansible-27 centos-release-ansible-28 centos-release-ansible-29 centos-release-azure centos-release-ceph-jewel centos-release-ceph-luminous centos-release-ceph-nautilus centos-release-ceph-octopus centos-release-configmanagement centos-release-cr centos-release-dotnet centos-release-fdio centos-release-gluster40 centos-release-gluster41 centos-release-gluster5 centos-release-gluster6 centos-release-gluster7 centos-release-gluster8 centos-release-gluster-legacy centos-release-messaging centos-release-nfs-ganesha28 centos-release-nfs-ganesha30 centos-release-nfv-common centos-release-nfv-openvswitch centos-release-openshift-origin centos-release-openstack-queens centos-release-openstack-rocky centos-release-openstack-stein centos-release-openstack-train centos-release-openstack-ussuri centos-release-opstools centos-release-ovirt42 centos-release-ovirt43 centos-release-ovirt44 centos-release-paas-common centos-release-qemu-ev centos-release-qpid-proton centos-release-rabbitmq-38 centos-release-samba411 centos-release-samba412 centos-release-scl centos-release-scl-rh centos-release-storage-common centos-release-virt-common centos-release-xen centos-release-xen-410 centos-release-xen-412 centos-release-xen-46 centos-release-xen-48 centos-release-xen-common centos-repos desktop-backgrounds-basic insights-client libreport-centos libreport-plugin-mantisbt libreport-plugin-rhtsupport libreport-rhel libreport-rhel-anaconda-bugzilla libreport-rhel-bugzilla libdtrace-ctf oracle-backgrounds oracle-epel-release-el8 oracle-indexhtml oraclelinux-release oraclelinux-release-el7 oraclelinux-release-el8 oracle-logos python3-dnf-plugin-ulninfo python3-syspurpose python-oauth redhat-backgrounds Red_Hat_Enterprise_Linux-Release_Notes-7-en-US redhat-indexhtml redhat-logos redhat-release redhat-release-eula redhat-release-server redhat-support-lib-python redhat-support-tool rocky-backgrounds rocky-gpg-keys rocky-indexhtml rocky-logos rocky-obsolete-packages rocky-release rocky-repos sl-logos uname26 yum-conf-extras yum-conf-repos)
 
 
 usage() {
@@ -82,6 +82,12 @@ check_fips() {
 check_secureboot(){
   if grep -oq 'Secure Boot: enabled' <(bootctl 2>&1) ; then
     exit_message "You appear to be running a system with Secure Boot enabled, which is not yet supported for migration. Disable it first, then run the script again."
+  fi
+}
+
+check_mdraid() {
+  if ls /dev/md* ; then
+    exit_message "^ You appear to be running a system on software RAID. Migration from such a system needs to be tested out thoroughly and is not yet officially supported."
   fi
 }
 
@@ -223,7 +229,7 @@ check_systemwide_python() {
   # replacing a system-wide Python 2 with 3).
   echo "Checking for required Python packages..."
   case "$os_version" in
-    8*)
+    8*|9*)
       dep_check /usr/libexec/platform-python
       ;;
     *)
@@ -236,7 +242,7 @@ find_repos_directory() {
   # Store your package manager's repositories directory for later use.
   echo "Finding your repository directory..."
   case "$os_version" in
-    8*)
+    8*|9*)
       reposdir=$(/usr/libexec/platform-python -c "
 import dnf
 import os
@@ -267,7 +273,7 @@ find_enabled_repos() {
   # Store your package manager's enabled repositories for later use.
   echo "Learning which repositories are enabled..."
   case "$os_version" in
-    8*)
+    8*|9*)
       enabled_repos=$(/usr/libexec/platform-python -c "
 import dnf
 
@@ -316,30 +322,55 @@ create_temp_el_repo() {
     cd "$reposdir"
     echo "Creating a temporary repo file for migration..."
     case "$os_version" in
+      9*)
+        cat > "switch-to-eurolinux.repo" <<-EOF
+[certify-baseos]
+name = EuroLinux beta BaseOS
+baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/${major_os_version}/\$basearch/certify-beta-BaseOS/os
+enabled=1
+gpgcheck=0
+skip_if_unavailable=1
+
+[certify-appstream]
+name = EuroLinux beta AppStream
+baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/${major_os_version}/\$basearch/certify-beta-AppStream/os
+enabled=1
+gpgcheck=0
+skip_if_unavailable=1
+
+[certify-powertools]
+name = EuroLinux beta PowerTools
+baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/${major_os_version}/\$basearch/certify-beta-PowerTools/os
+enabled=1
+gpgcheck=0
+skip_if_unavailable=1
+
+EOF
+        ;;
       8*)
-        cat > "switch-to-eurolinux.repo" <<-'EOF'
+        cat > "switch-to-eurolinux.repo" <<-EOF
 [certify-baseos]
 name = EuroLinux certify BaseOS
-baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/8/$basearch/certify-BaseOS/os
+baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/${major_os_version}/\$basearch/certify-BaseOS/os
 enabled=1
 gpgcheck=1
-gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-eurolinux8
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-eurolinux${major_os_version}
 skip_if_unavailable=1
 
 [certify-appstream]
 name = EuroLinux certify AppStream
-baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/8/$basearch/certify-AppStream/os
+baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/${major_os_version}/\$basearch/certify-AppStream/os
 enabled=1
 gpgcheck=1
-gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-eurolinux8
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-eurolinux${major_os_version}
 skip_if_unavailable=1
 
 [certify-powertools]
 name = EuroLinux certify PowerTools
-baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/8/$basearch/certify-PowerTools/os
+baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/${major_os_version}/\$basearch/certify-PowerTools/os
 enabled=1
 gpgcheck=1
-gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-eurolinux8
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-eurolinux${major_os_version}
 skip_if_unavailable=1
 
 EOF
@@ -380,8 +411,8 @@ register_to_euroman() {
   if [ -z "$path_to_internal_repo_file" ]; then
     echo "Registering to EuroMan if applicable..."
     case "$os_version" in
-      8*) 
-        echo "EuroLinux 8 is Open Core, not registering."
+      8*|9*)
+        echo "EuroLinux ${major_os_version} is Open Core, not registering."
         ;;
       *)
         if [ -z ${el_euroman_user+x} ]; then 
@@ -434,23 +465,30 @@ print(my_org)
   fi
 }
 
-remove_distro_gpg_pubkey() {
-  keys="$(rpm -qa --qf '%{nevra} %{packager}\n' gpg-pubkey*)"
-  if [ "$preserve" == "true" ]; then
-    # We need to make sure only the pubkeys of the vendors that provide the
-    # distros we're migrating from are removed and only these. As of today the
-    # solution is to have an array with their emails and make sure the
-    # corresponding pubkeys are removed.
-    bad_providers=('packager@almalinux.org' 'security@centos.org' 'build@oss.oracle.com' 'security@redhat.com' 'infrastructure@rockylinux.org' 'scientific-linux-devel@fnal.gov' )
-    for provider in ${bad_providers[*]} ; do
-      echo "Checking for the existence of gpg-pubkey provider: $provider..."
-      grep -i $provider <<< "$keys" | cut -d' ' -f 1 | xargs rpm -e || true
-    done
-  else
-    # On the other hand if we want to remove everything not related to
-    # EuroLinux, remove all of these keys unless they end with
-    # '@euro-linux.com'
-    grep -v '@euro-linux.com' <<< "$keys" | cut -d' ' -f 1 | xargs rpm -e || true
+check_el_repos_connectivity() {
+  # Perform a `yum makecache` to check if we can successfully connect to
+  # EuroLinux repositories. Just an additional check for safety in case there's
+  # something going on with the connection so we know in advance to fix it now
+  # rather than later.
+  # The commands mentioned appear to return 0 anyway on Enterprise Linux 8 so
+  # we need an additional logic for checking for 404s rather than relying on
+  # status codes. The same logic has been applied for Enterprise Linux 7 for
+  # consistency.
+  if [ ! -n "$path_to_internal_repo_file" ]; then
+    echo "Checking EuroLinux repositories connectivity..."
+      set +euo pipefail
+      case "$os_version" in
+        8*|9*)
+          yum --verbose --refresh --disablerepo="*" --enablerepo=certify-{baseos,appstream,powertools} makecache \
+            |& grep --color=auto 'error: Status code: 404' && final_failure
+          ;;
+        7*)
+          echo "(The connectivity check may take a long time on Enterprise Linux 7.)"
+          yum --verbose --refresh --disablerepo="*" --enablerepo={fbi,el-server-7-x86_64} makecache \
+            |& grep --color=auto 'HTTPS Error 404 - Not Found' && final_failure
+          ;;
+      esac
+      set -euo pipefail
   fi
 }
 
@@ -474,7 +512,10 @@ disable_distro_repos() {
   cd "$reposdir"
 
   if [ "$preserve" != "true" ]; then
+    set +e
+    rpm -qf *.repo | grep -v 'is not owned' | sort -u | xargs rpm -e
     rm -f *.repo
+    set -e
     create_temp_el_repo
   else
     cd "$(mktemp -d)"
@@ -494,6 +535,7 @@ disable_distro_repos() {
     esac
 
     echo "Backing up and removing old repository files..."
+    > repo_files
 
     # ... this one should apply to any Enterprise Linux except RHEL:
     echo "Identify repo files from the base OS..."
@@ -570,7 +612,7 @@ fix_oracle_shenanigans() {
         [ -n "${oracle_modules_enabled[*]}" ] && dnf module reset -y ${oracle_modules_enabled[*]} || echo "(No Oracle-branded modules found)"
         ;;
       7*)
-        yum remove -y --skip-broken uname26
+        yum remove -y --skip-broken uname26 libdtrace-ctf
         ;;
     esac
     set -euo pipefail
@@ -582,7 +624,7 @@ force_el_release() {
   # removing the current release provider package.
   set +euo pipefail
   case "$os_version" in
-      8*)
+      8*|9*)
         : # 'yum-utils' already provided my dnf, skipping
         dnf download el-release
         ;;
@@ -614,7 +656,7 @@ disable_el_repos_if_custom_repo_is_provided() {
   # from an Enterprise Linux 8.4 (old version) to EuroLinux 8.4.
   if [ -n "$path_to_internal_repo_file" ]; then
     case "$os_version" in
-      8*)
+      8*|9*)
         # Disabling the repos for offline migration is applicable to EL8 only
         # since on EL7 the core repos are skipped along with skipping EuroMan
         # registration. These below are provided by the el-release package.
@@ -780,12 +822,46 @@ compare_all_rpms() {
   set -u
 }
 
-update_grub() {
-  # Update bootloader entries. Output to a symlink which always points to the
-  # proper configuration file.
-  [ -d /sys/firmware/efi ] && grub2_conf="/etc/grub2-efi.cfg" || grub2_conf="/etc/grub2.cfg"
+remove_distro_gpg_pubkey() {
+  keys="$(rpm -qa --qf '%{nevra} %{packager}\n' gpg-pubkey*)"
+  if [ "$preserve" == "true" ]; then
+    # We need to make sure only the pubkeys of the vendors that provide the
+    # distros we're migrating from are removed and only these. As of today the
+    # solution is to have an array with their emails and make sure the
+    # corresponding pubkeys are removed.
+    bad_providers=('packager@almalinux.org' 'security@centos.org' 'build@oss.oracle.com' 'security@redhat.com' 'infrastructure@rockylinux.org' 'scientific-linux-devel@fnal.gov' )
+    for provider in ${bad_providers[*]} ; do
+      echo "Checking for the existence of gpg-pubkey provider: $provider..."
+      grep -i $provider <<< "$keys" | cut -d' ' -f 1 | xargs rpm -e || true
+    done
+  else
+    # On the other hand if we want to remove everything not related to
+    # EuroLinux, remove all of these keys unless they end with
+    # '@euro-linux.com'
+    echo "Checking for the existence of non-EuroLinux gpg-pubkeys and removing them..."
+    grep -v '@euro-linux.com' <<< "$keys" | cut -d' ' -f 1 | xargs rpm -e || true
+  fi
+}
+
+update_bootloader() {
+  # Update bootloader entries and EFI boot if appropriate.
+  if [ -d /sys/firmware/efi ]; then
+    echo "Performing preliminary tasks for updating EFI boot..."
+    yum install -y efibootmgr grub2-efi-x64 mokutil shim-x64
+    grub2_conf="/etc/grub2-efi.cfg"
+    efi_device="$(findmnt --noheadings --target /boot/efi --output source)"
+    efi_kname="$(lsblk -dno kname $efi_device)"
+    efi_pkname="$(lsblk -dno pkname $efi_device)"
+    efi_partition="$(cat /sys/block/$efi_pkname/$efi_kname/partition)" # Should be "1" by default but let's check just in case...
+  else
+    grub2_conf="/etc/grub2.cfg"
+  fi
   echo "Updating the GRUB2 bootloader at $grub2_conf (symlinked to $(readlink $grub2_conf))."
   grub2-mkconfig -o "$grub2_conf"
+  if [ -d /sys/firmware/efi ]; then
+    echo "Updating EFI boot."
+    efibootmgr -c -d "/dev/$efi_pkname" -l "/EFI/eurolinux/shimx64.efi" -L "EuroLinux $major_os_version" -p "$efi_partition" -v
+  fi
 }
 
 remove_leftovers() {
@@ -834,6 +910,7 @@ main() {
   warning_message
   check_fips
   check_secureboot
+  check_mdraid
   check_root
   check_required_packages
   check_distro
@@ -848,7 +925,7 @@ main() {
   grab_gpg_keys
   create_temp_el_repo
   register_to_euroman
-  remove_distro_gpg_pubkey
+  check_el_repos_connectivity
   disable_distro_repos
   fix_oracle_shenanigans
   remove_centos_yum_branding
@@ -862,7 +939,8 @@ main() {
   reinstall_all_rpms
   fix_reinstalled_rpms
   compare_all_rpms
-  update_grub
+  remove_distro_gpg_pubkey
+  update_bootloader
   remove_leftovers
   verify_generated_rpms_info
   remove_kernels_and_related_packages
