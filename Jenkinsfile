@@ -154,6 +154,7 @@ pipeline {
                 }
             }
         }
+    }
     post {
         success {
             echo 'Pipeline finished'
@@ -170,5 +171,4 @@ pipeline {
             cleanWs()
         }
     }
-  }
 }
