@@ -13,8 +13,6 @@ pipeline {
           label 'libvirt'
         }
     }
-    environment {
-    }
     stages {
         stage("Migrate 8.4 systems to EuroLinux 8.4"){
             steps{
