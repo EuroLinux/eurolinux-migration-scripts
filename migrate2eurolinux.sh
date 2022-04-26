@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 # Initially based on Oracle's centos2ol script. Thus licensed under the Universal Permissive License v1.0
 # Copyright (c) 2020, 2021 Oracle and/or its affiliates.
 # Copyright (c) 2021, 2022 EuroLinux
