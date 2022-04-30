@@ -1,9 +1,11 @@
-# migrate2eurolinux - ' el7-only-switch-repos'
+# migrate2eurolinux - 'el7-only-switch-repos'
 
 ## Switch repos of an Enterprise Linux 7 system to EuroLinux 7
 
 This script will automatically switch repositories of an Enterprise Linux 7
-system to EuroLinux 7's.
+system to EuroLinux 7's, remove only its exclusive packages like eg.
+`centos-linux-release` and if installed in EFI mode, install our shim and
+update bootloader enteries so our one will be used on next boot.
 By default, non-EuroLinux components such as packages from unofficial
 repositories will be preserved - take a look at the [Usage](#usage) section for
 info on how to make the script remove them and other options.
