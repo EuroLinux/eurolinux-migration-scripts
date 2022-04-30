@@ -223,10 +223,8 @@ for repo in base.repos.listEnabled():
 grab_gpg_keys() {
   # Get EuroLinux public GPG keys; store them in a predefined location before
   # adding any repositories.
-  if [ -z "$path_to_internal_repo_file" ]; then
-    echo "Grabbing EuroLinux GPG keys..."
-    curl "https://fbi.cdn.euro-linux.com/security/RPM-GPG-KEY-eurolinux$major_os_version" > "/etc/pki/rpm-gpg/RPM-GPG-KEY-eurolinux$major_os_version"
-  fi
+  echo "Grabbing EuroLinux GPG keys..."
+  curl "https://fbi.cdn.euro-linux.com/security/RPM-GPG-KEY-eurolinux$major_os_version" > "/etc/pki/rpm-gpg/RPM-GPG-KEY-eurolinux$major_os_version"
 }
 
 create_temp_el_repo() {
@@ -239,14 +237,11 @@ create_temp_el_repo() {
   # change in future releases, the URLs will stay the same.
   # It's possible to use your own repository and provide your own .repo file
   # as a parameter - in this case no extras are created.
-  if [ -n "$path_to_internal_repo_file" ]; then
-    cp "$path_to_internal_repo_file" "$reposdir/switch-to-eurolinux.repo"
-  else
-    cd "$reposdir"
-    echo "Creating a temporary repo file for migration..."
-    case "$os_version" in
-      7*)
-        cat > "switch-to-eurolinux.repo" <<-'EOF'
+  cd "$reposdir"
+  echo "Creating a temporary repo file for migration..."
+  case "$os_version" in
+    7*)
+      cat > "switch-to-eurolinux.repo" <<-'EOF'
 [euroman_tmp]
 name=euroman_tmp
 baseurl=https://elupdate.euro-linux.com/pub/enterprise-7/
@@ -262,10 +257,9 @@ gpgcheck=1
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-eurolinux7
 
 EOF
-        ;;
-      *) exit_message "You appear to be running an unsupported OS version: ${os_version}." ;;
-    esac
-  fi
+      ;;
+    *) exit_message "You appear to be running an unsupported OS version: ${os_version}." ;;
+  esac
 }
 
 register_to_euroman() {
@@ -278,20 +272,19 @@ register_to_euroman() {
   # accomplish this task.
   # It's possible to use your own repository and provide your own .repo file
   # as a parameter - in this case the registration process is skipped.
-  if [ -z "$path_to_internal_repo_file" ]; then
-    echo "Registering to EuroMan if applicable..."
-    if [ -z ${el_euroman_user+x} ]; then 
-      echo "Please provide your EuroMan username: "
-      read el_euroman_user
-    fi
-    if [ -z ${el_euroman_password+x} ]; then
-      echo "Please provide your EuroMan password: "
-      read -s el_euroman_password
-    fi
-    echo "Installing EuroMan-related tools..."
-    yum install -y python-hwdata rhn-client-tools rhn-check yum-rhn-plugin yum-utils rhnlib rhn-setup rhnsd
-    echo "Determining el_org_id based on your registration name & password..."
-    el_org_id=$(python2 -c "
+  echo "Registering to EuroMan if applicable..."
+  if [ -z ${el_euroman_user+x} ]; then 
+    echo "Please provide your EuroMan username: "
+    read el_euroman_user
+  fi
+  if [ -z ${el_euroman_password+x} ]; then
+    echo "Please provide your EuroMan password: "
+    read -s el_euroman_password
+  fi
+  echo "Installing EuroMan-related tools..."
+  yum install -y python-hwdata rhn-client-tools rhn-check yum-rhn-plugin yum-utils rhnlib rhn-setup rhnsd
+  echo "Determining el_org_id based on your registration name & password..."
+  el_org_id=$(python2 -c "
 import xmlrpclib
 import rhn.transports 
 import ssl
@@ -323,9 +316,8 @@ except xmlrpclib.Fault as e:
 my_org = client.user.getDetails(key, \"$el_euroman_user\")['org_id']
 print(my_org)
         ")
-    echo "Trying to register system with rhnreg_ks..."
-    rhnreg_ks --force --username "$el_euroman_user" --password "$el_euroman_password" --activationkey="$el_org_id-default-$major_os_version"
-  fi
+  echo "Trying to register system with rhnreg_ks..."
+  rhnreg_ks --force --username "$el_euroman_user" --password "$el_euroman_password" --activationkey="$el_org_id-default-$major_os_version"
 }
 
 disable_distro_repos() {
@@ -455,13 +447,7 @@ remove_leftovers() {
   echo "Removing yum cache..."
   rm -rf /var/cache/{yum,dnf}
   echo "Removing temporary repo..."
-  if [ -z "$path_to_internal_repo_file" ]; then
-    rm -f "${reposdir}/switch-to-eurolinux.repo"
-  else
-    echo "Since a custom repo has been provided, it will be used from now on as ${reposdir}/eurolinux-offline.repo"
-    echo "Reminder: the repos provided by the el-release package are kept as disabled."
-    mv "${reposdir}/switch-to-eurolinux.repo" "${reposdir}/eurolinux-offline.repo"
-  fi
+  rm -f "${reposdir}/switch-to-eurolinux.repo"
 
   if [[ "$old_release" =~ oraclelinux-release-(el)?[78] ]] ; then
     echo "Protecting systemd just as it was initially set up in Oracle Linux..."
