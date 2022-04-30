@@ -14,7 +14,7 @@ skip_warning=""
 # These are all the packages we need to remove. Some may not reside in this
 # array since they'll be swapped later on once EuroLinux repositories have been
 # added.
-bad_packages=(bcache-tools btrfs-progs centos-backgrounds centos-gpg-keys centos-indexhtml centos-linux-release centos-linux-repos centos-logos centos-release centos-release-advanced-virtualization centos-release-ansible26 centos-release-ansible-27 centos-release-ansible-28 centos-release-ansible-29 centos-release-azure centos-release-ceph-jewel centos-release-ceph-luminous centos-release-ceph-nautilus centos-release-ceph-octopus centos-release-configmanagement centos-release-cr centos-release-dotnet centos-release-fdio centos-release-gluster40 centos-release-gluster41 centos-release-gluster5 centos-release-gluster6 centos-release-gluster7 centos-release-gluster8 centos-release-gluster-legacy centos-release-messaging centos-release-nfs-ganesha28 centos-release-nfs-ganesha30 centos-release-nfv-common centos-release-nfv-openvswitch centos-release-openshift-origin centos-release-openstack-queens centos-release-openstack-rocky centos-release-openstack-stein centos-release-openstack-train centos-release-openstack-ussuri centos-release-opstools centos-release-ovirt42 centos-release-ovirt43 centos-release-ovirt44 centos-release-paas-common centos-release-qemu-ev centos-release-qpid-proton centos-release-rabbitmq-38 centos-release-samba411 centos-release-samba412 centos-release-scl centos-release-scl-rh centos-release-storage-common centos-release-virt-common centos-release-xen centos-release-xen-410 centos-release-xen-412 centos-release-xen-46 centos-release-xen-48 centos-release-xen-common centos-repos desktop-backgrounds-basic insights-client libreport-centos libreport-plugin-mantisbt libreport-plugin-rhtsupport libreport-rhel libreport-rhel-anaconda-bugzilla libreport-rhel-bugzilla libdtrace-ctf oracle-backgrounds oracle-epel-release-el8 oracle-indexhtml oraclelinux-release oraclelinux-release-el7 oraclelinux-release-el8 oracle-logos python3-dnf-plugin-ulninfo python3-syspurpose python-oauth redhat-backgrounds Red_Hat_Enterprise_Linux-Release_Notes-7-en-US redhat-indexhtml redhat-logos redhat-release redhat-release-eula redhat-release-server redhat-support-lib-python redhat-support-tool sl-logos)
+bad_packages=(bcache-tools btrfs-progs centos-backgrounds centos-gpg-keys centos-indexhtml centos-linux-release centos-linux-repos centos-logos centos-release centos-release-advanced-virtualization centos-release-ansible26 centos-release-ansible-27 centos-release-ansible-28 centos-release-ansible-29 centos-release-azure centos-release-ceph-jewel centos-release-ceph-luminous centos-release-ceph-nautilus centos-release-ceph-octopus centos-release-configmanagement centos-release-cr centos-release-dotnet centos-release-fdio centos-release-gluster40 centos-release-gluster41 centos-release-gluster5 centos-release-gluster6 centos-release-gluster7 centos-release-gluster8 centos-release-gluster-legacy centos-release-messaging centos-release-nfs-ganesha28 centos-release-nfs-ganesha30 centos-release-nfv-common centos-release-nfv-openvswitch centos-release-openshift-origin centos-release-openstack-queens centos-release-openstack-rocky centos-release-openstack-stein centos-release-openstack-train centos-release-openstack-ussuri centos-release-opstools centos-release-ovirt42 centos-release-ovirt43 centos-release-ovirt44 centos-release-paas-common centos-release-qemu-ev centos-release-qpid-proton centos-release-rabbitmq-38 centos-release-samba411 centos-release-samba412 centos-release-scl centos-release-scl-rh centos-release-storage-common centos-release-virt-common centos-release-xen centos-release-xen-410 centos-release-xen-412 centos-release-xen-46 centos-release-xen-48 centos-release-xen-common centos-repos desktop-backgrounds-basic insights-client libreport-centos libreport-plugin-mantisbt libreport-plugin-rhtsupport libreport-rhel libreport-rhel-anaconda-bugzilla libreport-rhel-bugzilla libdtrace-ctf python3-dnf-plugin-ulninfo python3-syspurpose python-oauth redhat-backgrounds Red_Hat_Enterprise_Linux-Release_Notes-7-en-US redhat-indexhtml redhat-logos redhat-release redhat-release-eula redhat-release-server redhat-support-lib-python redhat-support-tool sl-logos)
 
 
 usage() {
@@ -133,7 +133,6 @@ check_supported_releases() {
     redhat-release*) ;;
     centos-release* | centos-linux-release*) ;;
     sl-release*) ;;
-    oracle-release*|oraclelinux-release*|enterprise-release*) ;;
     el-release*|eurolinux-release*)
       exit_message "You appear to be already running EuroLinux."
       ;;
@@ -349,13 +348,6 @@ disable_distro_repos() {
     cd "$(mktemp -d)"
     trap final_failure ERR
 
-    # Most distros keep their /etc/yum.repos.d content in the -release rpm. Some do not and here are the tweaks for their more complex solutions...
-    case "$old_release" in
-      oraclelinux-release-7.*)
-        old_release=$(rpm -qa oraclelinux-release-el7*) ;;
-      *) : ;;
-    esac
-
     echo "Backing up and removing old repository files..."
     > repo_files
 
@@ -448,11 +440,6 @@ remove_leftovers() {
   rm -rf /var/cache/{yum,dnf}
   echo "Removing temporary repo..."
   rm -f "${reposdir}/switch-to-eurolinux.repo"
-
-  if [[ "$old_release" =~ oraclelinux-release-(el)?[78] ]] ; then
-    echo "Protecting systemd just as it was initially set up in Oracle Linux..."
-    mv /etc/yum/protected.d/systemd.conf.bak /etc/yum/protected.d/systemd.conf
-  fi
 }
 
 congratulations() {

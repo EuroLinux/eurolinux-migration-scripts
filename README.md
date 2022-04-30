@@ -15,7 +15,6 @@ info on how to make the script remove them and other options.
 The following distributions are supported on the x86_64 architecture:
 
 - CentOS 7
-- Oracle Linux 7
 - Red Hat Enterprise Linux 7
 - Scientific Linux 7
 
