@@ -11,12 +11,11 @@ github_url="https://github.com/EuroLinux/eurolinux-migration-scripts"
 path_to_internal_repo_file=""
 preserve="true"
 script_dir="$(dirname $(readlink -f $0))"
-skip_verification="false"
 skip_warning=""
 # These are all the packages we need to remove. Some may not reside in this
 # array since they'll be swapped later on once EuroLinux repositories have been
 # added.
-bad_packages=(almalinux-backgrounds almalinux-backgrounds-extras almalinux-indexhtml almalinux-logos almalinux-release almalinux-release-opennebula-addons bcache-tools btrfs-progs centos-backgrounds centos-gpg-keys centos-indexhtml centos-linux-release centos-linux-repos centos-logos centos-release centos-release-advanced-virtualization centos-release-ansible26 centos-release-ansible-27 centos-release-ansible-28 centos-release-ansible-29 centos-release-azure centos-release-ceph-jewel centos-release-ceph-luminous centos-release-ceph-nautilus centos-release-ceph-octopus centos-release-configmanagement centos-release-cr centos-release-dotnet centos-release-fdio centos-release-gluster40 centos-release-gluster41 centos-release-gluster5 centos-release-gluster6 centos-release-gluster7 centos-release-gluster8 centos-release-gluster-legacy centos-release-messaging centos-release-nfs-ganesha28 centos-release-nfs-ganesha30 centos-release-nfv-common centos-release-nfv-openvswitch centos-release-openshift-origin centos-release-openstack-queens centos-release-openstack-rocky centos-release-openstack-stein centos-release-openstack-train centos-release-openstack-ussuri centos-release-opstools centos-release-ovirt42 centos-release-ovirt43 centos-release-ovirt44 centos-release-paas-common centos-release-qemu-ev centos-release-qpid-proton centos-release-rabbitmq-38 centos-release-samba411 centos-release-samba412 centos-release-scl centos-release-scl-rh centos-release-storage-common centos-release-virt-common centos-release-xen centos-release-xen-410 centos-release-xen-412 centos-release-xen-46 centos-release-xen-48 centos-release-xen-common centos-repos desktop-backgrounds-basic insights-client libreport-centos libreport-plugin-mantisbt libreport-plugin-rhtsupport libreport-rhel libreport-rhel-anaconda-bugzilla libreport-rhel-bugzilla libdtrace-ctf oracle-backgrounds oracle-epel-release-el8 oracle-indexhtml oraclelinux-release oraclelinux-release-el7 oraclelinux-release-el8 oracle-logos python3-dnf-plugin-ulninfo python3-syspurpose python-oauth redhat-backgrounds Red_Hat_Enterprise_Linux-Release_Notes-7-en-US redhat-indexhtml redhat-logos redhat-release redhat-release-eula redhat-release-server redhat-support-lib-python redhat-support-tool rocky-backgrounds rocky-gpg-keys rocky-indexhtml rocky-logos rocky-obsolete-packages rocky-release rocky-repos sl-logos uname26 yum-conf-extras yum-conf-repos)
+bad_packages=(bcache-tools btrfs-progs centos-backgrounds centos-gpg-keys centos-indexhtml centos-linux-release centos-linux-repos centos-logos centos-release centos-release-advanced-virtualization centos-release-ansible26 centos-release-ansible-27 centos-release-ansible-28 centos-release-ansible-29 centos-release-azure centos-release-ceph-jewel centos-release-ceph-luminous centos-release-ceph-nautilus centos-release-ceph-octopus centos-release-configmanagement centos-release-cr centos-release-dotnet centos-release-fdio centos-release-gluster40 centos-release-gluster41 centos-release-gluster5 centos-release-gluster6 centos-release-gluster7 centos-release-gluster8 centos-release-gluster-legacy centos-release-messaging centos-release-nfs-ganesha28 centos-release-nfs-ganesha30 centos-release-nfv-common centos-release-nfv-openvswitch centos-release-openshift-origin centos-release-openstack-queens centos-release-openstack-rocky centos-release-openstack-stein centos-release-openstack-train centos-release-openstack-ussuri centos-release-opstools centos-release-ovirt42 centos-release-ovirt43 centos-release-ovirt44 centos-release-paas-common centos-release-qemu-ev centos-release-qpid-proton centos-release-rabbitmq-38 centos-release-samba411 centos-release-samba412 centos-release-scl centos-release-scl-rh centos-release-storage-common centos-release-virt-common centos-release-xen centos-release-xen-410 centos-release-xen-412 centos-release-xen-46 centos-release-xen-48 centos-release-xen-common centos-repos desktop-backgrounds-basic insights-client libreport-centos libreport-plugin-mantisbt libreport-plugin-rhtsupport libreport-rhel libreport-rhel-anaconda-bugzilla libreport-rhel-bugzilla libdtrace-ctf oracle-backgrounds oracle-epel-release-el8 oracle-indexhtml oraclelinux-release oraclelinux-release-el7 oraclelinux-release-el8 oracle-logos python3-dnf-plugin-ulninfo python3-syspurpose python-oauth redhat-backgrounds Red_Hat_Enterprise_Linux-Release_Notes-7-en-US redhat-indexhtml redhat-logos redhat-release redhat-release-eula redhat-release-server redhat-support-lib-python redhat-support-tool sl-logos)
 
 
 usage() {
@@ -91,20 +90,6 @@ check_mdraid() {
   fi
 }
 
-generate_rpms_info() {
-  # Generate an RPM database log and a list of RPMs installed on your system
-  # at any point in time.
-  set +euo pipefail
-  if [ "$skip_verification" != "true" ]; then
-    # $1 - before/after (a migration)
-    echo "Creating a list of RPMs installed $1 the switch..."
-    rpm -qa --qf "%{NAME}-%{EPOCH}:%{VERSION}-%{RELEASE}.%{ARCH}|%{INSTALLTIME}|%{VENDOR}|%{BUILDTIME}|%{BUILDHOST}|%{SOURCERPM}|%{LICENSE}|%{PACKAGER}\n" | sed 's/(none)://g' | sort > "/var/tmp/$(hostname)-rpms-list-$1.log"
-    echo "Verifying RPMs installed $1 the switch against RPM database..."
-    rpm -Va | sort -k3 > "/var/tmp/$(hostname)-rpms-verified-$1.log"
-  fi
-  set -euo pipefail
-}
-
 check_root() {
   # The script must be ran with superuser privileges any way possible. You can
   # refer to the way described in README.md - just switch to the root account
@@ -144,10 +129,6 @@ check_distro() {
   fi
 }
 
-verify_rpms_before_migration() {
-  generate_rpms_info before
-}
-
 check_supported_releases() {
   # Our supported distros list mentioned earlier in check_distro() comments.
   # In here this check is generalized and the old_release variable may be
@@ -157,8 +138,6 @@ check_supported_releases() {
     redhat-release*) ;;
     centos-release* | centos-linux-release*) ;;
     sl-release*) ;;
-    almalinux-release*) ;;
-    rocky-release*) ;;
     oracle-release*|oraclelinux-release*|enterprise-release*) ;;
     el-release*|eurolinux-release*)
       exit_message "You appear to be already running EuroLinux."
@@ -218,41 +197,13 @@ backup_internal_repo_file() {
 }
 
 check_systemwide_python() {
-  # This script has an embedded Python code for several operations that are
-  # expressed better that way rather than via a shell. It will need a Python
-  # interpreter. This check ensures the proper locations and version of the
-  # interpreter (the exact invocations will be used later in the script).
-  # Once the embedded Python code is present, it's written for that exact
-  # system-wide interpreter and integrated with other system-wide components -
-  # no incompatibilities as long as the system has the tools installed from
-  # its official repositories and no unofficial tweaks have been made (e.g.
-  # replacing a system-wide Python 2 with 3).
   echo "Checking for required Python packages..."
-  case "$os_version" in
-    8*|9*)
-      dep_check /usr/libexec/platform-python
-      ;;
-    *)
-      dep_check python2
-      ;;
-  esac
+  dep_check python2
 }
 
 find_repos_directory() {
   # Store your package manager's repositories directory for later use.
   echo "Finding your repository directory..."
-  case "$os_version" in
-    8*|9*)
-      reposdir=$(/usr/libexec/platform-python -c "
-import dnf
-import os
-
-dir = dnf.Base().conf.get_reposdir
-if os.path.isdir(dir):
-  print(dir)
-      ")
-      ;;
-    *)
       reposdir=$(python2 -c "
 import yum
 import os
@@ -262,8 +213,6 @@ for dir in yum.YumBase().doConfigSetup(init_plugins=False).reposdir:
     print dir
     break
       ")
-      ;;
-  esac
   if [ -z "${reposdir}" ]; then
     exit_message "Could not locate your repository directory."
   fi
@@ -272,18 +221,6 @@ for dir in yum.YumBase().doConfigSetup(init_plugins=False).reposdir:
 find_enabled_repos() {
   # Store your package manager's enabled repositories for later use.
   echo "Learning which repositories are enabled..."
-  case "$os_version" in
-    8*|9*)
-      enabled_repos=$(/usr/libexec/platform-python -c "
-import dnf
-
-base = dnf.Base()
-base.read_all_repos()
-for repo in base.repos.iter_enabled():
-  print(repo.id)
-      ")
-      ;;
-    *)
       enabled_repos=$(python2 -c "
 import yum
 
@@ -292,8 +229,6 @@ base.doConfigSetup(init_plugins=False)
 for repo in base.repos.listEnabled():
   print repo
       ")
-      ;;
-  esac
   echo -e "Repositories enabled before update include:\n${enabled_repos}"
 }
 
@@ -322,59 +257,6 @@ create_temp_el_repo() {
     cd "$reposdir"
     echo "Creating a temporary repo file for migration..."
     case "$os_version" in
-      9*)
-        cat > "switch-to-eurolinux.repo" <<-EOF
-[certify-baseos]
-name = EuroLinux beta BaseOS
-baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/${major_os_version}/\$basearch/certify-beta-BaseOS/os
-enabled=1
-gpgcheck=0
-skip_if_unavailable=1
-
-[certify-appstream]
-name = EuroLinux beta AppStream
-baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/${major_os_version}/\$basearch/certify-beta-AppStream/os
-enabled=1
-gpgcheck=0
-skip_if_unavailable=1
-
-[certify-powertools]
-name = EuroLinux beta PowerTools
-baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/${major_os_version}/\$basearch/certify-beta-PowerTools/os
-enabled=1
-gpgcheck=0
-skip_if_unavailable=1
-
-EOF
-        ;;
-      8*)
-        cat > "switch-to-eurolinux.repo" <<-EOF
-[certify-baseos]
-name = EuroLinux certify BaseOS
-baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/${major_os_version}/\$basearch/certify-BaseOS/os
-enabled=1
-gpgcheck=1
-gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-eurolinux${major_os_version}
-skip_if_unavailable=1
-
-[certify-appstream]
-name = EuroLinux certify AppStream
-baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/${major_os_version}/\$basearch/certify-AppStream/os
-enabled=1
-gpgcheck=1
-gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-eurolinux${major_os_version}
-skip_if_unavailable=1
-
-[certify-powertools]
-name = EuroLinux certify PowerTools
-baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/${major_os_version}/\$basearch/certify-PowerTools/os
-enabled=1
-gpgcheck=1
-gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-eurolinux${major_os_version}
-skip_if_unavailable=1
-
-EOF
-        ;;
       7*)
         cat > "switch-to-eurolinux.repo" <<-'EOF'
 [euroman_tmp]
@@ -410,23 +292,18 @@ register_to_euroman() {
   # as a parameter - in this case the registration process is skipped.
   if [ -z "$path_to_internal_repo_file" ]; then
     echo "Registering to EuroMan if applicable..."
-    case "$os_version" in
-      8*|9*)
-        echo "EuroLinux ${major_os_version} is Open Core, not registering."
-        ;;
-      *)
-        if [ -z ${el_euroman_user+x} ]; then 
-          echo "Please provide your EuroMan username: "
-          read el_euroman_user
-        fi
-        if [ -z ${el_euroman_password+x} ]; then
-          echo "Please provide your EuroMan password: "
-          read -s el_euroman_password
-        fi
-        echo "Installing EuroMan-related tools..."
-        yum install -y python-hwdata rhn-client-tools rhn-check yum-rhn-plugin yum-utils rhnlib rhn-setup rhnsd
-        echo "Determining el_org_id based on your registration name & password..."
-        el_org_id=$(python2 -c "
+    if [ -z ${el_euroman_user+x} ]; then 
+      echo "Please provide your EuroMan username: "
+      read el_euroman_user
+    fi
+    if [ -z ${el_euroman_password+x} ]; then
+      echo "Please provide your EuroMan password: "
+      read -s el_euroman_password
+    fi
+    echo "Installing EuroMan-related tools..."
+    yum install -y python-hwdata rhn-client-tools rhn-check yum-rhn-plugin yum-utils rhnlib rhn-setup rhnsd
+    echo "Determining el_org_id based on your registration name & password..."
+    el_org_id=$(python2 -c "
 import xmlrpclib
 import rhn.transports 
 import ssl
@@ -458,37 +335,8 @@ except xmlrpclib.Fault as e:
 my_org = client.user.getDetails(key, \"$el_euroman_user\")['org_id']
 print(my_org)
         ")
-        echo "Trying to register system with rhnreg_ks..."
-        rhnreg_ks --force --username "$el_euroman_user" --password "$el_euroman_password" --activationkey="$el_org_id-default-$major_os_version"
-        ;;
-    esac
-  fi
-}
-
-check_el_repos_connectivity() {
-  # Perform a `yum makecache` to check if we can successfully connect to
-  # EuroLinux repositories. Just an additional check for safety in case there's
-  # something going on with the connection so we know in advance to fix it now
-  # rather than later.
-  # The commands mentioned appear to return 0 anyway on Enterprise Linux 8 so
-  # we need an additional logic for checking for 404s rather than relying on
-  # status codes. The same logic has been applied for Enterprise Linux 7 for
-  # consistency.
-  if [ ! -n "$path_to_internal_repo_file" ]; then
-    echo "Checking EuroLinux repositories connectivity..."
-      set +euo pipefail
-      case "$os_version" in
-        8*|9*)
-          yum --verbose --refresh --disablerepo="*" --enablerepo=certify-{baseos,appstream,powertools} makecache \
-            |& grep --color=auto 'error: Status code: 404' && final_failure
-          ;;
-        7*)
-          echo "(The connectivity check may take a long time on Enterprise Linux 7.)"
-          yum --verbose --refresh --disablerepo="*" --enablerepo={fbi,el-server-7-x86_64} makecache \
-            |& grep --color=auto 'HTTPS Error 404 - Not Found' && final_failure
-          ;;
-      esac
-      set -euo pipefail
+    echo "Trying to register system with rhnreg_ks..."
+    rhnreg_ks --force --username "$el_euroman_user" --password "$el_euroman_password" --activationkey="$el_org_id-default-$major_os_version"
   fi
 }
 
@@ -523,12 +371,6 @@ disable_distro_repos() {
 
     # Most distros keep their /etc/yum.repos.d content in the -release rpm. Some do not and here are the tweaks for their more complex solutions...
     case "$old_release" in
-      centos-release-8.*|centos-linux-release-8.*)
-        old_release=$(rpm -qa centos*repos) ;;
-      rocky-release*)
-        old_release=$(rpm -qa rocky*repos) ;;
-      oraclelinux-release-8.*)
-        old_release=$(rpm -qa oraclelinux-release-el8*) ;;
       oraclelinux-release-7.*)
         old_release=$(rpm -qa oraclelinux-release-el7*) ;;
       *) : ;;
@@ -585,262 +427,18 @@ remove_centos_yum_branding() {
   fi
 }
 
-fix_oracle_shenanigans() {
-  # Several packages in Oracle Linux have a different naming convention. These
-  # are incompatible with other Enterprise Linuxes and treated as newer
-  # versions by package managers. For a migration we need to 'downgrade' them
-  # to EuroLinux equivalents once EuroLinux repositories have been added.
-  #
-  # Some Oracle Linux exclusive packages with no equivalents will be removed
-  # as well. Oracle-branded enabled modules will be reset here and their names
-  # stored for later use once a distro-sync has been performed.
-  set +euo pipefail
-  if [[ "$old_release" =~ oracle ]]; then
-    echo "Dealing with Oracle Linux curiosities..."
-    echo "Unprotecting systemd temporarily..."
-    mv /etc/yum/protected.d/systemd.conf /etc/yum/protected.d/systemd.conf.bak
-    rpm -e --nodeps $(rpm -qa | grep "oracle")
-    yum downgrade --skip-broken -y yum 
-    yum downgrade --skip-broken -y $(for suffixable in $(rpm -qa | egrep "\.0\.[1-9]\.el") ; do rpm -q $suffixable --qf '%{NAME}\n' ; done)
-    unlink /etc/os-release || true
-    case "$os_version" in
-      8*)
-        yum remove --skip-broken -y bcache-tools btrfs-progs python3-dnf-plugin-ulninfo
-        echo "Getting the list of Oracle-branded modules..."
-        oracle_modules_enabled=( $(dnf module list --enabled | grep ' ol8' | cut -d ' ' -f 1) )
-        oracle_modules_installed=( $(dnf module list --installed | grep ' ol8' | cut -d ' ' -f 1) )
-        [ -n "${oracle_modules_enabled[*]}" ] && dnf module reset -y ${oracle_modules_enabled[*]} || echo "(No Oracle-branded modules found)"
-        ;;
-      7*)
-        yum remove -y --skip-broken uname26 libdtrace-ctf
-        ;;
-    esac
-    set -euo pipefail
-  fi
-}
-
 force_el_release() {
   # Get yumdownloader if applicable and force and installation of el-release,
   # removing the current release provider package.
   set +euo pipefail
-  case "$os_version" in
-      8*|9*)
-        : # 'yum-utils' already provided my dnf, skipping
-        dnf download el-release
-        ;;
-      7*)
-        echo "Looking for yumdownloader..."
-        yum -y install yum-utils
-        yumdownloader el-release
-        dep_check yumdownloader
-        ;;
-  esac
+  echo "Looking for yumdownloader..."
+  yum -y install yum-utils
+  yumdownloader el-release
+  dep_check yumdownloader
   for i in "${bad_packages[@]}" ; do rpm -e --nodeps "$i" || true ; done
-
-  # Additional tweak for RHEL 8 - remove these directories manually.
-  # Otherwise an error will show up:
-  # error: unpacking of archive failed on file [...]: cpio: File from 
-  # package already exists as a directory in system
-  if [[ "$old_release" =~ redhat-release ]]; then
-    echo "RHEL detected - removing 'redhat-release*' directories manually."
-    rm -rf /usr/share/doc/redhat-release* /usr/share/redhat-release*
-  fi
 
   rpm -i --force el-release*
   set -euo pipefail
-}
-
-disable_el_repos_if_custom_repo_is_provided() {
-  # If a custom repo file is provided, do not use the repos we install with
-  # el-release. This also applies if one wants to use our Vault and migrate
-  # from an Enterprise Linux 8.4 (old version) to EuroLinux 8.4.
-  if [ -n "$path_to_internal_repo_file" ]; then
-    case "$os_version" in
-      8*|9*)
-        # Disabling the repos for offline migration is applicable to EL8 only
-        # since on EL7 the core repos are skipped along with skipping EuroMan
-        # registration. These below are provided by the el-release package.
-        echo "Disabling the EuroLinux 8-provided repos for offline migration..."
-        dnf config-manager --disable certify-{baseos,appstream,powertools}
-        ;;
-      7*)
-        echo "EuroLinux 7 core repos have been already skipped along with skipping EuroMan registration by using a custom .repo"
-        ;;
-    esac
-  fi
-}
-
-install_el_base() {
-  # Remove packages from other Enterprise Linux distros and install ours. It's
-  # vital that this be performed in one go such as with `yum shell` so the
-  # important dependencies are replaced with ours rather than failing to be
-  # removed by a package manager.
-  echo "Installing base packages for EuroLinux..."
-
-  if ! yum shell -y <<EOF
-  remove ${bad_packages[@]}
-  install ${base_packages[@]}
-  run
-EOF
-  then
-    exit_message "Could not install base packages. Run 'yum distro-sync' to manually install them."
-  fi
-}
-
-update_initrd() {
-  # Create a new initrd with EuroLinux bootsplash
-  if [ -x /usr/libexec/plymouth/plymouth-update-initrd ]; then
-    echo "Updating initrd..."
-    /usr/libexec/plymouth/plymouth-update-initrd
-  fi
-}
-
-el_distro_sync() {
-  # Make sure all packages are synchronized with the ones EuroLinux provides.
-  echo "Switch successful. Syncing with EuroLinux repositories..."
-  if ! yum -y distro-sync; then
-    exit_message "Could not automatically sync with EuroLinux repositories.
-  Check the output of 'yum distro-sync' to manually resolve the issue."
-  fi
-}
-
-restore_modules() {
-  # Restore the modules that were previously Oracle-branded.
-  # First, check if the system the migration is taking place on was Oracle
-  # Linux - otherwise it's pointless to run all these checks.
-  if [[ "$old_release" =~ oracle ]]; then
-    echo "Restoring modules that were Oracle-branded if applicable..."
-    case "$os_version" in
-      8*)
-        if [ -n "${oracle_modules_enabled[*]}" ]; then
-            eurolinux_modules_to_enable=( $(echo ${oracle_modules_enabled[*]} | sed -E 's@ @:rhel8 @g;s@$@:rhel8@g') )
-            echo "Reenabling the modules: ${eurolinux_modules_to_enable[*]}..."
-            dnf module enable -y ${eurolinux_modules_to_enable[*]}
-        fi
-        if [ -n "${oracle_modules_installed[*]}" ]; then
-            eurolinux_modules_to_install=( $(echo ${oracle_modules_installed[*]} | sed -E 's@ @:rhel8 @g;s@$@:rhel8@g') )
-            echo "Reinstalling the modules: ${eurolinux_modules_to_install[*]}..."
-            dnf module install -y ${eurolinux_modules_to_install[*]}
-        fi
-        echo "Module restoration done."
-      ;;
-      *) echo "(Non-applicable)" ;;
-    esac
-  fi
-}
-
-deal_with_problematic_rpms() {
-  # Some RPMs are either not covered by 'replaces' metadata or couldn't be
-  # replaced earlier. This part takes care of all of them.
-  # In some cases these can be replaced automatically but until additional
-  # tests have been performed, this logic is kept here.
-  if [[ "$(rpm -qa '*-logos-ipa' | grep -v 'el-logos-ipa')" ]]; then
-    yum swap -y "*-logos-ipa" "el-logos-ipa"
-  fi
-
-  if [[ "$(rpm -qa '*-logos-httpd' | grep -v 'el-logos-httpd')" ]]; then
-    yum swap -y "*-logos-httpd" "el-logos-httpd"
-  fi
-
-  # libzstd - required during the migration process, can be removed now
-  yum remove -y libzstd || true
-
-  # A necessary downgrade to the version from our repos since the 'virt'
-  # module gets installed when debranding Oracle Linux modules. It may fail
-  # and a removal is performed as a fallback action.
-  case "$os_version" in
-    8*)
-      [ $(rpm -qa "qemu-guest-agent") ] && sudo dnf downgrade -y qemu-guest-agent || sudo dnf remove -y qemu-guest-agent ;;
-    *) : ;;
-  esac
-}
-
-reinstall_all_rpms() {
-  # A safety measure - all packages will be reinstalled and later on compared
-  # if they belong to EuroLinux or not. If not, this might not be a problem at
-  # all - it depends if they are from other vendors you migrated from or third
-  # party repositories such as EPEL.
-  echo "Reinstalling all RPMs..."
-  yum reinstall -y \*
-}
-
-fix_reinstalled_rpms() {
-  # Reinstalling OpenJDK packages breaks their links in /etc/alternatives:
-  # https://bugzilla.redhat.com/show_bug.cgi?id=1976053
-  rpm -qa --scripts java-*-openjdk-* | sed -n '/postinstall/, /exit/{ /postinstall/! { /exit/ ! p} }' | sh
-
-  # After reinstalling IPA we need to perform an 'upgrade' to make it work again.
-  set +euo pipefail
-  [ "$(rpm -qa 'ipa-server' | grep module)" ] && ipa-server-upgrade --skip-version-check
-  set -euo pipefail
-}
-
-compare_all_rpms() {
-  set +u
-  declare internal_repo_pattern=""
-  declare -a non_eurolinux_rpms_from_yum_list
-  declare -a non_eurolinux_rpms_and_metadata
-  declare -a non_eurolinux_rpms_and_metadata_without_kernel_related
-
-  # Once an internal .repo file is provided, search for the names of the
-  # offline repositories and construct them as a grep pattern. Take a look
-  # at the pipe symbol: | before a command substitution takes place - it
-  # will be used for appending the result to `grep -Ev [...]` and will work
-  # even if the variable is nonexistent.
-  if [ -n "$path_to_internal_repo_file" ]; then
-    internal_repo_pattern="|$(grep -oP '\[\K[^\]]+' "$path_to_internal_repo_file" | xargs echo | sed 's/ /|/g')"
-  fi
-
-  # Query all packages and their metadata such as their Vendor. The result of
-  # the query will be stored in a Bash array named non_eurolinux_rpms[...].
-  # Since earlier EuroLinux packages are branded as Scientific Linux, an
-  # additional pattern is considered when looking up EuroLinux products.
-  # Some packages may not be branded properly - we use `yum` to determine
-  # their origin and then check with `rpm`.
-  # When listing packages with `yum`, there may be a few which are listed with
-  # two lines rather than one due to their long filename - the output is
-  # modified via `sed` to deal with this curiosity.
-  # To complicate things even further, two packages (rhnlib and rhnsd)
-  # are not branded. They are excluded from the non-EuroLinux RPM list.
-  mapfile -t non_eurolinux_rpms_from_yum_list < <(yum list installed | sed '/^[^@]*$/{N;s/\n//}' | grep -Ev '@el-server-|@euroman|@fbi|@certify'"$internal_repo_pattern" | grep '@' | cut -d' ' -f 1 | cut -d'.' -f 1)
-  mapfile -t non_eurolinux_rpms_and_metadata < <(rpm -qa --qf "%{NEVRA}|%{VENDOR}|%{PACKAGER}\n" ${non_eurolinux_rpms_from_yum_list[*]} | grep -Ev 'EuroLinux|Scientific' | sed 's@\ @\_@g' | grep -Ev '^(rhnlib|rhnsd).+\|\(none\)\|\(none\)$') 
-  if [[ -n "${non_eurolinux_rpms_and_metadata[*]}" ]]; then
-    echo "The following non-EuroLinux RPMs are installed on the system:"
-    printf '\t%s\n' "${non_eurolinux_rpms_and_metadata[@]}"
-    echo "This may be expected of your environment and does not necessarily indicate a problem."
-    echo "If a large number of RPMs from other vendors are included and you're unsure why please open an issue on ${github_url}"
-    if [ "$preserve" != "true" ]; then
-      echo "Removing these packages (except those kernel-related) automatically..."
-      non_eurolinux_rpms_and_metadata_without_kernel_related=( ${non_eurolinux_rpms_and_metadata[@]/kernel*/} )
-      if [ ${#non_eurolinux_rpms_and_metadata_without_kernel_related[@]} -gt 0 ]; then
-        yum remove -y ${non_eurolinux_rpms_and_metadata_without_kernel_related[@]%%|*}
-      else
-        echo "(no need to remove anything)"
-      fi
-    fi
-  fi
-  set -u
-}
-
-remove_distro_gpg_pubkey() {
-  keys="$(rpm -qa --qf '%{nevra} %{packager}\n' gpg-pubkey*)"
-  if [ "$preserve" == "true" ]; then
-    # We need to make sure only the pubkeys of the vendors that provide the
-    # distros we're migrating from are removed and only these. As of today the
-    # solution is to have an array with their emails and make sure the
-    # corresponding pubkeys are removed.
-    bad_providers=('packager@almalinux.org' 'security@centos.org' 'build@oss.oracle.com' 'security@redhat.com' 'infrastructure@rockylinux.org' 'scientific-linux-devel@fnal.gov' )
-    for provider in ${bad_providers[*]} ; do
-      echo "Checking for the existence of gpg-pubkey provider: $provider..."
-      grep -i $provider <<< "$keys" | cut -d' ' -f 1 | xargs rpm -e || true
-    done
-  else
-    # On the other hand if we want to remove everything not related to
-    # EuroLinux, remove all of these keys unless they end with
-    # '@euro-linux.com'
-    echo "Checking for the existence of non-EuroLinux gpg-pubkeys and removing them..."
-    grep -v '@euro-linux.com' <<< "$keys" | cut -d' ' -f 1 | xargs rpm -e || true
-  fi
 }
 
 update_bootloader() {
@@ -883,23 +481,6 @@ remove_leftovers() {
   fi
 }
 
-verify_generated_rpms_info() {
-  generate_rpms_info after
-  if [ "$skip_verification" != "true" ]; then
-    echo "Review the output of following files:"
-    find /var/tmp/ -type f -name "$(hostname)-rpms-*.log"
-  fi
-}
-
-remove_kernels_and_related_packages() {
-  # The answer on what to remove
-  # See the remove_kernels.sh's usage() for more information.
-  [ "$preserve" == "true" ] && removal_answer=3 || removal_answer=2
-  echo "Running ./remove_kernels.sh -a $removal_answer..."
-  cd "$script_dir"
-  ./remove_kernels.sh -a $removal_answer
-}
-
 congratulations() {
   echo "Switch almost complete. EuroLinux recommends rebooting this system.
 Once booted up, a background service will perform a further kernel removal."
@@ -914,7 +495,6 @@ main() {
   check_root
   check_required_packages
   check_distro
-  verify_rpms_before_migration
   check_supported_releases
   prepare_pre_migration_environment
   check_yum_lock
@@ -925,25 +505,11 @@ main() {
   grab_gpg_keys
   create_temp_el_repo
   register_to_euroman
-  check_el_repos_connectivity
   disable_distro_repos
-  fix_oracle_shenanigans
   remove_centos_yum_branding
   force_el_release
-  disable_el_repos_if_custom_repo_is_provided
-  install_el_base
-  update_initrd
-  el_distro_sync
-  restore_modules
-  deal_with_problematic_rpms
-  reinstall_all_rpms
-  fix_reinstalled_rpms
-  compare_all_rpms
-  remove_distro_gpg_pubkey
   update_bootloader
   remove_leftovers
-  verify_generated_rpms_info
-  remove_kernels_and_related_packages
   congratulations
 }
 
@@ -954,7 +520,6 @@ while getopts "fhp:r:u:vw" option; do
         p) el_euroman_password="$OPTARG" ;;
         r) path_to_internal_repo_file="$OPTARG" ;;
         u) el_euroman_user="$OPTARG" ;;
-        v) skip_verification="true" ;;
         w) preserve="false" ;;
         *) usage ;;
     esac
