@@ -8,7 +8,6 @@ set -euo pipefail
 # GLOBAL variables
 answer=""
 github_url="https://github.com/EuroLinux/eurolinux-migration-scripts"
-path_to_internal_repo_file=""
 preserve="true"
 script_dir="$(dirname $(readlink -f $0))"
 skip_warning=""
@@ -24,12 +23,8 @@ usage() {
     echo "OPTIONS"
     echo "-f      Skip warning messages"
     echo "-h      Display this help and exit"
-    echo "-r      Use a custom .repo file (for offline migration)"
-    echo "-v      Don't verify RPMs"
     echo "-w      Remove all detectable non-EuroLinux extras"
     echo "        (e.g. third-party repositories and backed-up .repo files)"
-    echo
-    echo "OPTIONS applicable to Enterprise Linux 7 or older"
     echo "-u      Your EuroMan username (usually an email address)"
     echo "-p      Your EuroMan password"
     exit 1
@@ -39,7 +34,7 @@ warning_message() {
   # Display a warning message about backups unless running non-interactively
   # (assumed default behavior).
   if [ "$skip_warning" != "true" ]; then
-    echo "This script will migrate your existing Enterprise Linux system to EuroLinux. Extra precautions have been arranged but there's always the risk of something going wrong in the process and users are always recommended to make a backup."
+    echo "This script will switch your existing Enterprise Linux 7 system repositories to EuroLinux 7's ones, remove that-system-specific packages like logos and if installed in EFI mode, install our shim and update bootloader entries so our one will be used on next boot. Extra precautions have been arranged but there's always the risk of something going wrong in the process and users are always recommended to make a backup."
     echo "Do you want to continue? Type 'YES' if that's the case."
     read answer
     if [[ ! "$answer" =~ ^[Yy][Ee][Ss]$ ]]; then
@@ -186,13 +181,6 @@ check_yum_lock() {
   The other application is: $yum_lock_comm
   Running as pid: $yum_lock_pid
   Run 'kill $yum_lock_pid' to stop it, then run this script again."
-  fi
-}
-
-backup_internal_repo_file() {
-  if [ -n "$path_to_internal_repo_file" ]; then
-    cp "$path_to_internal_repo_file" "/root/${path_to_internal_repo_file##*/}"
-    path_to_internal_repo_file="/root/${path_to_internal_repo_file##*/}"
   fi
 }
 
@@ -482,8 +470,7 @@ remove_leftovers() {
 }
 
 congratulations() {
-  echo "Switch almost complete. EuroLinux recommends rebooting this system.
-Once booted up, a background service will perform a further kernel removal."
+  echo "Switch almost complete. EuroLinux recommends rebooting this system."
 }
 
 main() {
@@ -498,7 +485,6 @@ main() {
   check_supported_releases
   prepare_pre_migration_environment
   check_yum_lock
-  backup_internal_repo_file
   check_systemwide_python
   find_repos_directory
   find_enabled_repos
@@ -518,7 +504,6 @@ while getopts "fhp:r:u:vw" option; do
         f) skip_warning="true" ;;
         h) usage ;;
         p) el_euroman_password="$OPTARG" ;;
-        r) path_to_internal_repo_file="$OPTARG" ;;
         u) el_euroman_user="$OPTARG" ;;
         w) preserve="false" ;;
         *) usage ;;
