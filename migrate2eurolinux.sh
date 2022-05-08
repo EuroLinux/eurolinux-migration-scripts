@@ -936,7 +936,7 @@ main() {
   el_distro_sync
   restore_modules
   deal_with_problematic_rpms
-  reinstall_all_rpms
+  #reinstall_all_rpms
   fix_reinstalled_rpms
   compare_all_rpms
   remove_distro_gpg_pubkey
