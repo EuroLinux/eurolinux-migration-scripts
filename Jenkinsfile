@@ -28,7 +28,7 @@ pipeline {
                   script{
                       parallel supported_9_machine_names.collectEntries { vagrant_machine -> [ "${vagrant_machine}": {
                               stage("$vagrant_machine") {
-                                  sh("bash -c 'sleep \$(( $RANDOM % 9 ))'")
+                                  sleep(20 * Math.random())
                                   sh("vagrant up $vagrant_machine")
                                   sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -b'")
                                   sh("vagrant ssh $vagrant_machine -c \"sudo /home/vagrant/eurolinux-migration-scripts/migrate2eurolinux.sh -f -v -w && sudo reboot\" || true")
@@ -51,7 +51,7 @@ pipeline {
                   script{
                       parallel supported_8_machine_names.collectEntries { vagrant_machine -> [ "${vagrant_machine}": {
                               stage("$vagrant_machine") {
-                                  sh("bash -c 'sleep \$(( $RANDOM % 9 ))'")
+                                  sleep(20 * Math.random())
                                   sh("vagrant up $vagrant_machine")
                                   sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -b'")
                                   sh("vagrant ssh $vagrant_machine -c \"sudo /home/vagrant/eurolinux-migration-scripts/migrate2eurolinux.sh -f -v -w && sudo reboot\" || true")
@@ -73,7 +73,7 @@ pipeline {
                   script{
                       parallel supported_7_machine_names.collectEntries { vagrant_machine -> [ "${vagrant_machine}": {
                               stage("$vagrant_machine") {
-                                  sh("bash -c 'sleep \$(( $RANDOM % 9 ))'")
+                                  sleep(20 * Math.random())
                                   sh("vagrant up $vagrant_machine")
                                   sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -b'")
                                   sh("vagrant ssh $vagrant_machine -c \"sudo /home/vagrant/eurolinux-migration-scripts/migrate2eurolinux.sh -f -v -w -u $EUROMAN_CREDENTIALS_USR -p $EUROMAN_CREDENTIALS_PSW && sudo reboot\" || true")
@@ -95,7 +95,7 @@ pipeline {
                   script{
                       parallel legacy_8_machine_names.collectEntries { vagrant_machine -> [ "${vagrant_machine}": {
                               stage("$vagrant_machine") {
-                                  sh("bash -c 'sleep \$(( $RANDOM % 9 ))'")
+                                  sleep(20 * Math.random())
                                   sh("vagrant up $vagrant_machine")
                                   sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -b'")
                                   sh("vagrant ssh $vagrant_machine -c \"sudo /home/vagrant/eurolinux-migration-scripts/migrate2eurolinux.sh -r /home/vagrant/eurolinux-migration-scripts/vault.repo -f -v -w && sudo reboot\" || true")
@@ -117,7 +117,7 @@ pipeline {
                   script{
                       parallel supported_9_machine_names.collectEntries { vagrant_machine -> [ "${vagrant_machine}": {
                               stage("$vagrant_machine") {
-                                  sh("bash -c 'sleep \$(( $RANDOM % 9 ))'")
+                                  sleep(20 * Math.random())
                                   sh("vagrant up $vagrant_machine")
                                   sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -b'")
                                   sh("vagrant ssh $vagrant_machine -c \"sudo /home/vagrant/eurolinux-migration-scripts/migrate2eurolinux.sh -f -v && sudo reboot\" || true")
@@ -139,7 +139,7 @@ pipeline {
                   script{
                       parallel supported_8_machine_names.collectEntries { vagrant_machine -> [ "${vagrant_machine}": {
                               stage("$vagrant_machine") {
-                                  sh("bash -c 'sleep \$(( $RANDOM % 9 ))'")
+                                  sleep(20 * Math.random())
                                   sh("vagrant up $vagrant_machine")
                                   sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -b'")
                                   sh("vagrant ssh $vagrant_machine -c \"sudo /home/vagrant/eurolinux-migration-scripts/migrate2eurolinux.sh -f -v && sudo reboot\" || true")
@@ -161,7 +161,7 @@ pipeline {
                   script{
                       parallel supported_7_machine_names.collectEntries { vagrant_machine -> [ "${vagrant_machine}": {
                               stage("$vagrant_machine") {
-                                  sh("bash -c 'sleep \$(( $RANDOM % 9 ))'")
+                                  sleep(20 * Math.random())
                                   sh("vagrant up $vagrant_machine")
                                   sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -b'")
                                   sh("vagrant ssh $vagrant_machine -c \"sudo /home/vagrant/eurolinux-migration-scripts/migrate2eurolinux.sh -f -v -u $EUROMAN_CREDENTIALS_USR -p $EUROMAN_CREDENTIALS_PSW && sudo reboot\" || true")
@@ -183,7 +183,7 @@ pipeline {
                   script{
                       parallel legacy_8_machine_names.collectEntries { vagrant_machine -> [ "${vagrant_machine}": {
                               stage("$vagrant_machine") {
-                                  sh("bash -c 'sleep \$(( $RANDOM % 9 ))'")
+                                  sleep(20 * Math.random())
                                   sh("vagrant up $vagrant_machine")
                                   sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -b'")
                                   sh("vagrant ssh $vagrant_machine -c \"sudo /home/vagrant/eurolinux-migration-scripts/migrate2eurolinux.sh -r /home/vagrant/eurolinux-migration-scripts/vault.repo -f -v && sudo reboot\" || true")
