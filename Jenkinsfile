@@ -28,12 +28,11 @@ pipeline {
                   script{
                       parallel supported_9_machine_names.collectEntries { vagrant_machine -> [ "${vagrant_machine}": {
                               stage("$vagrant_machine") {
-                                  sleep(20 * Math.random())
+                                  sleep(5 * Math.random())
                                   sh("vagrant up $vagrant_machine")
                                   sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -b'")
-                                  sh("vagrant ssh $vagrant_machine -c \"sudo /home/vagrant/eurolinux-migration-scripts/migrate2eurolinux.sh -f -v -w && sudo reboot\" || true")
-                                  sh("echo 'Waiting 5 minutes for the box to warm up and for the kernel-removing systemd service to finish its job...'")
-                                  sh("sleep 300")
+                                  sh("vagrant ssh $vagrant_machine -c \"sudo /home/vagrant/eurolinux-migration-scripts/migrate2eurolinux.sh -f -v -w && sudo poweroff\" || true")
+                                  sh("vagrant up $vagrant_machine")
                                   sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/test_what_non_el_remains_after_migration.sh'")
                                   sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -a'")
                                   sh("vagrant destroy $vagrant_machine -f")
@@ -51,12 +50,11 @@ pipeline {
                   script{
                       parallel supported_8_machine_names.collectEntries { vagrant_machine -> [ "${vagrant_machine}": {
                               stage("$vagrant_machine") {
-                                  sleep(20 * Math.random())
+                                  sleep(5 * Math.random())
                                   sh("vagrant up $vagrant_machine")
                                   sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -b'")
-                                  sh("vagrant ssh $vagrant_machine -c \"sudo /home/vagrant/eurolinux-migration-scripts/migrate2eurolinux.sh -f -v -w && sudo reboot\" || true")
-                                  sh("echo 'Waiting 5 minutes for the box to warm up and for the kernel-removing systemd service to finish its job...'")
-                                  sh("sleep 300")
+                                  sh("vagrant ssh $vagrant_machine -c \"sudo /home/vagrant/eurolinux-migration-scripts/migrate2eurolinux.sh -f -v -w && sudo poweroff\" || true")
+                                  sh("vagrant up $vagrant_machine")
                                   sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/test_what_non_el_remains_after_migration.sh'")
                                   sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -a'")
                                   sh("vagrant destroy $vagrant_machine -f")
@@ -73,12 +71,11 @@ pipeline {
                   script{
                       parallel supported_7_machine_names.collectEntries { vagrant_machine -> [ "${vagrant_machine}": {
                               stage("$vagrant_machine") {
-                                  sleep(20 * Math.random())
+                                  sleep(5 * Math.random())
                                   sh("vagrant up $vagrant_machine")
                                   sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -b'")
-                                  sh("vagrant ssh $vagrant_machine -c \"sudo /home/vagrant/eurolinux-migration-scripts/migrate2eurolinux.sh -f -v -w -u $EUROMAN_CREDENTIALS_USR -p $EUROMAN_CREDENTIALS_PSW && sudo reboot\" || true")
-                                  sh("echo 'Waiting 5 minutes for the box to warm up and for the kernel-removing systemd service to finish its job...'")
-                                  sh("sleep 300")
+                                  sh("vagrant ssh $vagrant_machine -c \"sudo /home/vagrant/eurolinux-migration-scripts/migrate2eurolinux.sh -f -v -w -u $EUROMAN_CREDENTIALS_USR -p $EUROMAN_CREDENTIALS_PSW && sudo poweroff\" || true")
+                                  sh("vagrant up $vagrant_machine")
                                   sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/test_what_non_el_remains_after_migration.sh'")
                                   sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -a'")
                                   sh("vagrant destroy $vagrant_machine -f")
@@ -95,12 +92,11 @@ pipeline {
                   script{
                       parallel legacy_8_machine_names.collectEntries { vagrant_machine -> [ "${vagrant_machine}": {
                               stage("$vagrant_machine") {
-                                  sleep(20 * Math.random())
+                                  sleep(5 * Math.random())
                                   sh("vagrant up $vagrant_machine")
                                   sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -b'")
-                                  sh("vagrant ssh $vagrant_machine -c \"sudo /home/vagrant/eurolinux-migration-scripts/migrate2eurolinux.sh -r /home/vagrant/eurolinux-migration-scripts/vault.repo -f -v -w && sudo reboot\" || true")
-                                  sh("echo 'Waiting 5 minutes for the box to warm up and for the kernel-removing systemd service to finish its job...'")
-                                  sh("sleep 300")
+                                  sh("vagrant ssh $vagrant_machine -c \"sudo /home/vagrant/eurolinux-migration-scripts/migrate2eurolinux.sh -r /home/vagrant/eurolinux-migration-scripts/vault.repo -f -v -w && sudo poweroff\" || true")
+                                  sh("vagrant up $vagrant_machine")
                                   sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/test_what_non_el_remains_after_migration.sh'")
                                   sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -a'")
                                   sh("vagrant destroy $vagrant_machine -f")
@@ -117,12 +113,11 @@ pipeline {
                   script{
                       parallel supported_9_machine_names.collectEntries { vagrant_machine -> [ "${vagrant_machine}": {
                               stage("$vagrant_machine") {
-                                  sleep(20 * Math.random())
+                                  sleep(5 * Math.random())
                                   sh("vagrant up $vagrant_machine")
                                   sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -b'")
-                                  sh("vagrant ssh $vagrant_machine -c \"sudo /home/vagrant/eurolinux-migration-scripts/migrate2eurolinux.sh -f -v && sudo reboot\" || true")
-                                  sh("echo 'Waiting 5 minutes for the box to warm up and for the kernel-removing systemd service to finish its job...'")
-                                  sh("sleep 300")
+                                  sh("vagrant ssh $vagrant_machine -c \"sudo /home/vagrant/eurolinux-migration-scripts/migrate2eurolinux.sh -f -v && sudo poweroff\" || true")
+                                  sh("vagrant up $vagrant_machine")
                                   sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/test_what_non_el_remains_after_migration.sh -t'")
                                   sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -a' || true")
                                   sh("vagrant destroy $vagrant_machine -f")
@@ -139,12 +134,11 @@ pipeline {
                   script{
                       parallel supported_8_machine_names.collectEntries { vagrant_machine -> [ "${vagrant_machine}": {
                               stage("$vagrant_machine") {
-                                  sleep(20 * Math.random())
+                                  sleep(5 * Math.random())
                                   sh("vagrant up $vagrant_machine")
                                   sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -b'")
-                                  sh("vagrant ssh $vagrant_machine -c \"sudo /home/vagrant/eurolinux-migration-scripts/migrate2eurolinux.sh -f -v && sudo reboot\" || true")
-                                  sh("echo 'Waiting 5 minutes for the box to warm up and for the kernel-removing systemd service to finish its job...'")
-                                  sh("sleep 300")
+                                  sh("vagrant ssh $vagrant_machine -c \"sudo /home/vagrant/eurolinux-migration-scripts/migrate2eurolinux.sh -f -v && sudo poweroff\" || true")
+                                  sh("vagrant up $vagrant_machine")
                                   sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/test_what_non_el_remains_after_migration.sh -t'")
                                   sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -a' || true")
                                   sh("vagrant destroy $vagrant_machine -f")
@@ -161,12 +155,11 @@ pipeline {
                   script{
                       parallel supported_7_machine_names.collectEntries { vagrant_machine -> [ "${vagrant_machine}": {
                               stage("$vagrant_machine") {
-                                  sleep(20 * Math.random())
+                                  sleep(5 * Math.random())
                                   sh("vagrant up $vagrant_machine")
                                   sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -b'")
-                                  sh("vagrant ssh $vagrant_machine -c \"sudo /home/vagrant/eurolinux-migration-scripts/migrate2eurolinux.sh -f -v -u $EUROMAN_CREDENTIALS_USR -p $EUROMAN_CREDENTIALS_PSW && sudo reboot\" || true")
-                                  sh("echo 'Waiting 5 minutes for the box to warm up and for the kernel-removing systemd service to finish its job...'")
-                                  sh("sleep 300")
+                                  sh("vagrant ssh $vagrant_machine -c \"sudo /home/vagrant/eurolinux-migration-scripts/migrate2eurolinux.sh -f -v -u $EUROMAN_CREDENTIALS_USR -p $EUROMAN_CREDENTIALS_PSW && sudo poweroff\" || true")
+                                  sh("vagrant up $vagrant_machine")
                                   sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/test_what_non_el_remains_after_migration.sh -t'")
                                   sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -a' || true")
                                   sh("vagrant destroy $vagrant_machine -f")
@@ -183,12 +176,11 @@ pipeline {
                   script{
                       parallel legacy_8_machine_names.collectEntries { vagrant_machine -> [ "${vagrant_machine}": {
                               stage("$vagrant_machine") {
-                                  sleep(20 * Math.random())
+                                  sleep(5 * Math.random())
                                   sh("vagrant up $vagrant_machine")
                                   sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -b'")
-                                  sh("vagrant ssh $vagrant_machine -c \"sudo /home/vagrant/eurolinux-migration-scripts/migrate2eurolinux.sh -r /home/vagrant/eurolinux-migration-scripts/vault.repo -f -v && sudo reboot\" || true")
-                                  sh("echo 'Waiting 5 minutes for the box to warm up and for the kernel-removing systemd service to finish its job...'")
-                                  sh("sleep 300")
+                                  sh("vagrant ssh $vagrant_machine -c \"sudo /home/vagrant/eurolinux-migration-scripts/migrate2eurolinux.sh -r /home/vagrant/eurolinux-migration-scripts/vault.repo -f -v && sudo poweroff\" || true")
+                                  sh("vagrant up $vagrant_machine")
                                   sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/test_what_non_el_remains_after_migration.sh -t'")
                                   sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -a' || true")
                                   sh("vagrant destroy $vagrant_machine -f")
