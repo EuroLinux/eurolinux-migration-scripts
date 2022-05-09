@@ -680,12 +680,12 @@ install_el_base() {
   case "$os_version" in
     8*|9*)
       if ! yum shell -y <<EOF
-      remove ${bad_packages[@]}
-      install ${base_packages[@]}
-      run
+        remove ${bad_packages[@]}
+        install ${base_packages[@]}
+        run
 EOF
       then
-        exit_message "Could not install base packages. Run 'yum distro-sync' to manually install them."
+        yum -y distro-sync
       fi
       ;;
     7*)
@@ -699,15 +699,6 @@ update_initrd() {
   if [ -x /usr/libexec/plymouth/plymouth-update-initrd ]; then
     echo "Updating initrd..."
     /usr/libexec/plymouth/plymouth-update-initrd
-  fi
-}
-
-el_distro_sync() {
-  # Make sure all packages are synchronized with the ones EuroLinux provides.
-  echo "Switch successful. Syncing with EuroLinux repositories..."
-  if ! yum -y distro-sync; then
-    exit_message "Could not automatically sync with EuroLinux repositories.
-  Check the output of 'yum distro-sync' to manually resolve the issue."
   fi
 }
 
@@ -931,7 +922,6 @@ main() {
   disable_el_repos_if_custom_repo_is_provided
   install_el_base
   update_initrd
-  el_distro_sync
   restore_modules
   deal_with_problematic_rpms
   fix_reinstalled_rpms
