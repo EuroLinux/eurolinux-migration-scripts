@@ -677,14 +677,21 @@ install_el_base() {
   # removed by a package manager.
   echo "Installing base packages for EuroLinux..."
 
-  if ! yum shell -y <<EOF
-  remove ${bad_packages[@]}
-  install ${base_packages[@]}
-  run
+  case "$os_version" in
+    8*|9*)
+      if ! yum shell -y <<EOF
+      remove ${bad_packages[@]}
+      install ${base_packages[@]}
+      run
 EOF
-  then
-    exit_message "Could not install base packages. Run 'yum distro-sync' to manually install them."
-  fi
+      then
+        exit_message "Could not install base packages. Run 'yum distro-sync' to manually install them."
+      fi
+      ;;
+    7*)
+      yum reinstall -y \*
+      ;;
+  esac
 }
 
 update_initrd() {
@@ -753,15 +760,6 @@ deal_with_problematic_rpms() {
       [ $(rpm -qa "qemu-guest-agent") ] && sudo dnf downgrade -y qemu-guest-agent || sudo dnf remove -y qemu-guest-agent ;;
     *) : ;;
   esac
-}
-
-reinstall_all_rpms() {
-  # A safety measure - all packages will be reinstalled and later on compared
-  # if they belong to EuroLinux or not. If not, this might not be a problem at
-  # all - it depends if they are from other vendors you migrated from or third
-  # party repositories such as EPEL.
-  echo "Reinstalling all RPMs..."
-  yum reinstall -y \*
 }
 
 fix_reinstalled_rpms() {
@@ -936,7 +934,6 @@ main() {
   el_distro_sync
   restore_modules
   deal_with_problematic_rpms
-  #reinstall_all_rpms
   fix_reinstalled_rpms
   compare_all_rpms
   remove_distro_gpg_pubkey
