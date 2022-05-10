@@ -14,6 +14,7 @@ info on how to make the script remove them and other options.
 The following distributions are supported on the x86_64 architecture:
 
 - AlmaLinux 8
+- AlmaLinux 9 Beta\*
 - CentOS 7
 - CentOS 8
 - Oracle Linux 7
@@ -24,7 +25,7 @@ The following distributions are supported on the x86_64 architecture:
 - Rocky Linux 8
 - Scientific Linux 7
 
-*\* Please, keep in mind that since this is a Beta release, things may change
+\** Please, keep in mind that since this is a Beta release, things may change
 rapidly and the migration script may not be able to keep up with them.*
 
 The system that you want to migrate shall be up-to-date and the script will, by
