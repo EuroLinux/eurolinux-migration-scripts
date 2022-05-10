@@ -6,7 +6,6 @@ Check url: ${currentBuild.absoluteUrl}.
 
 def supported_9_machine_names = ["rhel9"]
 def supported_8_machine_names = ["almalinux8", "centos8", "generic-rhel8", "oracle8", "rhel8", "rockylinux8"]
-def legacy_8_machine_names = ["almalinux8-4", "centos8-4", "rockylinux8-4"]
 def supported_7_machine_names = ["centos7", "generic-rhel7", "oracle7", "rhel7", "scientific7"]
 
 pipeline {
@@ -88,28 +87,6 @@ pipeline {
                 }
             }
         }
-        stage("Migrate legacy systems to equivalent legacy minor EuroLinux 8"){
-            steps{
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                  script{
-                      parallel legacy_8_machine_names.collectEntries { vagrant_machine -> [ "${vagrant_machine}": {
-                              stage("$vagrant_machine") {
-                                  sleep(5 * Math.random())
-                                  sh("vagrant up $vagrant_machine")
-                                  sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -b'")
-                                  sh("vagrant ssh $vagrant_machine -c \"sudo /home/vagrant/eurolinux-migration-scripts/migrate2eurolinux.sh -r /home/vagrant/eurolinux-migration-scripts/vault.repo -f -v -w && sudo poweroff\" || true")
-                                  sh("vagrant up $vagrant_machine")
-                                  sleep(60)
-                                  sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/test_what_non_el_remains_after_migration.sh'")
-                                  sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -a'")
-                                  sh("vagrant destroy $vagrant_machine -f")
-                              }
-                          }]
-                      }
-                  }
-                }
-            }
-        }
         stage("Migrate supported systems to EuroLinux 9 and preserve non-EuroLinux packages"){
             steps{
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
@@ -164,28 +141,6 @@ pipeline {
                                   sh("vagrant up $vagrant_machine")
                                   sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -b'")
                                   sh("vagrant ssh $vagrant_machine -c \"sudo /home/vagrant/eurolinux-migration-scripts/migrate2eurolinux.sh -f -v -u $EUROMAN_CREDENTIALS_USR -p $EUROMAN_CREDENTIALS_PSW && sudo poweroff\" || true")
-                                  sh("vagrant up $vagrant_machine")
-                                  sleep(60)
-                                  sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/test_what_non_el_remains_after_migration.sh -t'")
-                                  sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -a' || true")
-                                  sh("vagrant destroy $vagrant_machine -f")
-                              }
-                          }]
-                      }
-                  }
-                }
-            }
-        }
-        stage("Migrate legacy systems to equivalent legacy minor EuroLinux 8 and preserve non-EuroLinux packages"){
-            steps{
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                  script{
-                      parallel legacy_8_machine_names.collectEntries { vagrant_machine -> [ "${vagrant_machine}": {
-                              stage("$vagrant_machine") {
-                                  sleep(5 * Math.random())
-                                  sh("vagrant up $vagrant_machine")
-                                  sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -b'")
-                                  sh("vagrant ssh $vagrant_machine -c \"sudo /home/vagrant/eurolinux-migration-scripts/migrate2eurolinux.sh -r /home/vagrant/eurolinux-migration-scripts/vault.repo -f -v && sudo poweroff\" || true")
                                   sh("vagrant up $vagrant_machine")
                                   sleep(60)
                                   sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/test_what_non_el_remains_after_migration.sh -t'")
