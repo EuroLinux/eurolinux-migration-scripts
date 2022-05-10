@@ -15,6 +15,11 @@ Vagrant.configure("2") do |config|
   #  libvirt.storage :file, :device => :cdrom, :path => "/var/lib/libvirt/images/mirror.iso"
   end
 
+  config.vm.define "almalinux9" do |i|
+    i.vm.box = "eurolinux-vagrant/almalinux-9"
+    i.vm.hostname = "almalinux9"
+  end
+
   config.vm.define "almalinux8-4" do |i|
     i.vm.box = "eurolinux-vagrant/almalinux-8"
     i.vm.hostname = "almalinux8-4"
