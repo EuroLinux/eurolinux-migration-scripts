@@ -181,9 +181,10 @@ snippet and adjust the ISO image path:
 
 ## Switch to an older EuroLinux minor release
 
-Use the `-r` option and specify the `vault.repo` file in this repository. It's
-an example of a configuration that uses our Vault for installation of older
-packages so you can migrate from an Enterprise Linux 8.4 to EuroLinux 8.4.  
+Use the `-r` option and specify the `vault/vault-MAJOR.MINOR.repo` file in this
+repository. It's an example of a configuration that uses our Vault for
+installation of older packages so you can migrate from an Enterprise Linux 8.4
+to EuroLinux 8.4.  
 Adjust the minor release in that file, so it suits your needs.
 
 ## Troubleshooting
