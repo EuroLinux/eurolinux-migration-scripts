@@ -32,6 +32,12 @@ Vagrant.configure("2") do |config|
     i.vm.box_version = "8.5.11"
   end
 
+  config.vm.define "almalinux8-6" do |i|
+    i.vm.box = "eurolinux-vagrant/almalinux-8"
+    i.vm.hostname = "almalinux8-6"
+    i.vm.box_version = "8.6.0"
+  end
+
   config.vm.define "almalinux8" do |i|
     i.vm.box = "eurolinux-vagrant/almalinux-8"
     i.vm.hostname = "almalinux8"
