@@ -656,11 +656,15 @@ disable_el_repos_if_custom_repo_is_provided() {
   # from an Enterprise Linux 8.4 (old version) to EuroLinux 8.4.
   if [ -n "$path_to_internal_repo_file" ]; then
     case "$os_version" in
-      8*|9*)
+      8.6|8.7|8.8|8.9|8.10|9*)
         # Disabling the repos for offline migration is applicable to EL8 only
         # since on EL7 the core repos are skipped along with skipping EuroMan
         # registration. These below are provided by the el-release package.
         echo "Disabling the EuroLinux 8-provided repos for offline migration..."
+        dnf config-manager --disable {baseos,appstream,powertools}
+        ;;
+      8.3|8.4|8.5|9*)
+        echo "Disabling the EuroLinux 8-provided 'certify' repos for offline migration..."
         dnf config-manager --disable certify-{baseos,appstream,powertools}
         ;;
       7*)
