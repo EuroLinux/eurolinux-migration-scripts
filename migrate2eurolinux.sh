@@ -8,6 +8,7 @@ set -euo pipefail
 # GLOBAL variables
 answer=""
 github_url="https://github.com/EuroLinux/eurolinux-migration-scripts"
+logs_path="/var/tmp"
 path_to_internal_repo_file=""
 preserve="true"
 script_dir="$(dirname $(readlink -f $0))"
@@ -25,6 +26,7 @@ usage() {
     echo "OPTIONS"
     echo "-f      Skip warning messages"
     echo "-h      Display this help and exit"
+    echo "-l      Override default logs path (/var/tmp)"
     echo "-r      Use a custom .repo file (for offline migration)"
     echo "-v      Don't verify RPMs"
     echo "-w      Remove all detectable non-EuroLinux extras"
@@ -98,9 +100,9 @@ generate_rpms_info() {
   if [ "$skip_verification" != "true" ]; then
     # $1 - before/after (a migration)
     echo "Creating a list of RPMs installed $1 the switch..."
-    rpm -qa --qf "%{NAME}-%{EPOCH}:%{VERSION}-%{RELEASE}.%{ARCH}|%{INSTALLTIME}|%{VENDOR}|%{BUILDTIME}|%{BUILDHOST}|%{SOURCERPM}|%{LICENSE}|%{PACKAGER}\n" | sed 's/(none)://g' | sort > "/var/tmp/$(hostname)-rpms-list-$1.log"
-    echo "Verifying RPMs installed $1 the switch against RPM database..."
-    rpm -Va | sort -k3 > "/var/tmp/$(hostname)-rpms-verified-$1.log"
+    rpm -qa --qf "%{NAME}-%{EPOCH}:%{VERSION}-%{RELEASE}.%{ARCH}|%{INSTALLTIME}|%{VENDOR}|%{BUILDTIME}|%{BUILDHOST}|%{SOURCERPM}|%{LICENSE}|%{PACKAGER}\n" | sed 's/(none)://g' | sort > "${logs_path}/$(hostname)-rpms-list-$1.log"
+    echo "Verifying RPMs installed $1 the switch against RPM database... - ${logs_path}/$(hostname)-rpms-list-$1.log"
+    rpm -Va | sort -k3 > "${logs_path}/$(hostname)-rpms-verified-$1.log"
   fi
   set -euo pipefail
 }
@@ -883,7 +885,7 @@ verify_generated_rpms_info() {
   generate_rpms_info after
   if [ "$skip_verification" != "true" ]; then
     echo "Review the output of following files:"
-    find /var/tmp/ -type f -name "$(hostname)-rpms-*.log"
+    find "${logs_path}" -type f -name "$(hostname)-rpms-*.log"
   fi
 }
 
@@ -942,10 +944,11 @@ main() {
   congratulations
 }
 
-while getopts "fhp:r:u:vw" option; do
+while getopts "fhl:p:r:u:vw" option; do
     case "$option" in
         f) skip_warning="true" ;;
         h) usage ;;
+        l) logs_path="$OPTARG" ;;
         p) el_euroman_password="$OPTARG" ;;
         r) path_to_internal_repo_file="$OPTARG" ;;
         u) el_euroman_user="$OPTARG" ;;
