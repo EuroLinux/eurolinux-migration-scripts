@@ -174,6 +174,11 @@ prepare_pre_migration_environment() {
   os_version=$(rpm -q "${old_release}" --qf "%{version}")
   major_os_version=${os_version:0:1}
   base_packages=(basesystem grub2 grubby initscripts plymouth)
+  
+  set +e
+  rm -f /etc/yum/protected.d/{redhat-release,setup,systemd}.conf
+  set -e
+  
   case "${old_release}" in
     redhat-release*)
       echo "RHEL detected. Checking subscription status..."
@@ -184,8 +189,6 @@ prepare_pre_migration_environment() {
 keys, certificates, etc. if necessary and remove the system from subscription
 management service with 'subscription-manager unregister', then run this script again."
       fi
-      echo "Unprotecting Red Hat-related assets..."
-      rm -f /etc/yum/protected.d/{redhat-release,setup}.conf
       ;;
   esac
   if [ "$preserve" != "true" ]; then
@@ -597,8 +600,6 @@ fix_oracle_shenanigans() {
   set +euo pipefail
   if [[ "$old_release" =~ oracle ]]; then
     echo "Dealing with Oracle Linux curiosities..."
-    echo "Unprotecting systemd temporarily..."
-    mv /etc/yum/protected.d/systemd.conf /etc/yum/protected.d/systemd.conf.bak
     rpm -e --nodeps $(rpm -qa | grep "oracle")
     yum downgrade --skip-broken -y yum 
     yum downgrade --skip-broken -y $(for suffixable in $(rpm -qa | egrep "\.0\.[1-9]\.el") ; do rpm -q $suffixable --qf '%{NAME}\n' ; done)
@@ -877,11 +878,6 @@ remove_leftovers() {
     echo "Since a custom repo has been provided, it will be used from now on as ${reposdir}/eurolinux-offline.repo"
     echo "Reminder: the repos provided by the el-release package are kept as disabled."
     mv "${reposdir}/switch-to-eurolinux.repo" "${reposdir}/eurolinux-offline.repo"
-  fi
-
-  if [[ "$old_release" =~ oraclelinux-release-(el)?[78] ]] ; then
-    echo "Protecting systemd just as it was initially set up in Oracle Linux..."
-    mv /etc/yum/protected.d/systemd.conf.bak /etc/yum/protected.d/systemd.conf
   fi
 }
 
