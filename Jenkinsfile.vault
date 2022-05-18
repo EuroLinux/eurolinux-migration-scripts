@@ -4,7 +4,7 @@ ${currentBuild.fullDisplayName} / ${currentBuild.number}
 Check url: ${currentBuild.absoluteUrl}.
 """
 
-def legacy_8_6_machine_names = ["almalinux8-6"]
+def legacy_8_6_machine_names = ["almalinux8-6", "rockylinux8-6"]
 def legacy_8_5_machine_names = ["almalinux8-5", "centos8-5", "oracle8-5", "rockylinux8-5"]
 def legacy_8_4_machine_names = ["almalinux8-4", "centos8-4", "rockylinux8-4"]
 
