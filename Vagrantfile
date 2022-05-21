@@ -15,10 +15,27 @@ Vagrant.configure("2") do |config|
   #  libvirt.storage :file, :device => :cdrom, :path => "/var/lib/libvirt/images/mirror.iso"
   end
 
+  config.vm.define "almalinux9" do |i|
+    i.vm.box = "eurolinux-vagrant/almalinux-9"
+    i.vm.hostname = "almalinux9"
+  end
+
   config.vm.define "almalinux8-4" do |i|
     i.vm.box = "eurolinux-vagrant/almalinux-8"
     i.vm.hostname = "almalinux8-4"
     i.vm.box_version = "8.4.4"
+  end
+
+  config.vm.define "almalinux8-5" do |i|
+    i.vm.box = "eurolinux-vagrant/almalinux-8"
+    i.vm.hostname = "almalinux8-5"
+    i.vm.box_version = "8.5.11"
+  end
+
+  config.vm.define "almalinux8-6" do |i|
+    i.vm.box = "eurolinux-vagrant/almalinux-8"
+    i.vm.hostname = "almalinux8-6"
+    i.vm.box_version = "8.6.0"
   end
 
   config.vm.define "almalinux8" do |i|
@@ -37,14 +54,27 @@ Vagrant.configure("2") do |config|
     i.vm.box_version = "8.4.5"
   end
 
-  config.vm.define "centos8" do |i|
+  config.vm.define "centos8-5" do |i|
     i.vm.box = "eurolinux-vagrant/centos-8"
-    i.vm.hostname = "centos8"
+    i.vm.hostname = "centos8-5"
+    i.vm.box_version = "8.5.3"
   end
 
   config.vm.define "oracle7" do |i|
     i.vm.box = "eurolinux-vagrant/oracle-linux-7"
     i.vm.hostname = "oracle7"
+  end
+
+  config.vm.define "oracle8-5" do |i|
+    i.vm.box = "eurolinux-vagrant/oracle-linux-8"
+    i.vm.hostname = "oracle8-5"
+    i.vm.box_version = "8.5.14"
+  end
+
+  config.vm.define "oracle8-6" do |i|
+    i.vm.box = "eurolinux-vagrant/oracle-linux-8"
+    i.vm.hostname = "oracle8-6"
+    i.vm.box_version = "8.6.0"
   end
 
   config.vm.define "oracle8" do |i|
@@ -88,6 +118,18 @@ Vagrant.configure("2") do |config|
     i.vm.box = "eurolinux-vagrant/rocky-8"
     i.vm.hostname = "rockylinux8-4"
     i.vm.box_version = "8.4.6"
+  end
+
+  config.vm.define "rockylinux8-5" do |i|
+    i.vm.box = "eurolinux-vagrant/rocky-8"
+    i.vm.hostname = "rockylinux8-5"
+    i.vm.box_version = "8.5.11"
+  end
+
+  config.vm.define "rockylinux8-6" do |i|
+    i.vm.box = "eurolinux-vagrant/rocky-8"
+    i.vm.hostname = "rockylinux8-6"
+    i.vm.box_version = "8.6.0"
   end
 
   config.vm.define "rockylinux8" do |i|

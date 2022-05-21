@@ -14,6 +14,7 @@ info on how to make the script remove them and other options.
 The following distributions are supported on the x86_64 architecture:
 
 - AlmaLinux 8
+- AlmaLinux 9 Beta\*
 - CentOS 7
 - CentOS 8
 - Oracle Linux 7
@@ -24,7 +25,7 @@ The following distributions are supported on the x86_64 architecture:
 - Rocky Linux 8
 - Scientific Linux 7
 
-*\* Please, keep in mind that since this is a Beta release, things may change
+\** Please, keep in mind that since this is a Beta release, things may change
 rapidly and the migration script may not be able to keep up with them.*
 
 The system that you want to migrate shall be up-to-date and the script will, by
@@ -180,9 +181,10 @@ snippet and adjust the ISO image path:
 
 ## Switch to an older EuroLinux minor release
 
-Use the `-r` option and specify the `vault.repo` file in this repository. It's
-an example of a configuration that uses our Vault for installation of older
-packages so you can migrate from an Enterprise Linux 8.4 to EuroLinux 8.4.  
+Use the `-r` option and specify the `vault/vault-MAJOR.MINOR.repo` file in this
+repository. It's an example of a configuration that uses our Vault for
+installation of older packages so you can migrate from an Enterprise Linux 8.4
+to EuroLinux 8.4.  
 Adjust the minor release in that file, so it suits your needs.
 
 ## Troubleshooting

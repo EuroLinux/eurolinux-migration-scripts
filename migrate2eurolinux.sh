@@ -8,6 +8,7 @@ set -euo pipefail
 # GLOBAL variables
 answer=""
 github_url="https://github.com/EuroLinux/eurolinux-migration-scripts"
+logs_path="/var/tmp"
 path_to_internal_repo_file=""
 preserve="true"
 script_dir="$(dirname $(readlink -f $0))"
@@ -25,6 +26,7 @@ usage() {
     echo "OPTIONS"
     echo "-f      Skip warning messages"
     echo "-h      Display this help and exit"
+    echo "-l      Override default logs path (/var/tmp)"
     echo "-r      Use a custom .repo file (for offline migration)"
     echo "-v      Don't verify RPMs"
     echo "-w      Remove all detectable non-EuroLinux extras"
@@ -98,9 +100,9 @@ generate_rpms_info() {
   if [ "$skip_verification" != "true" ]; then
     # $1 - before/after (a migration)
     echo "Creating a list of RPMs installed $1 the switch..."
-    rpm -qa --qf "%{NAME}-%{EPOCH}:%{VERSION}-%{RELEASE}.%{ARCH}|%{INSTALLTIME}|%{VENDOR}|%{BUILDTIME}|%{BUILDHOST}|%{SOURCERPM}|%{LICENSE}|%{PACKAGER}\n" | sed 's/(none)://g' | sort > "/var/tmp/$(hostname)-rpms-list-$1.log"
-    echo "Verifying RPMs installed $1 the switch against RPM database..."
-    rpm -Va | sort -k3 > "/var/tmp/$(hostname)-rpms-verified-$1.log"
+    rpm -qa --qf "%{NAME}-%{EPOCH}:%{VERSION}-%{RELEASE}.%{ARCH}|%{INSTALLTIME}|%{VENDOR}|%{BUILDTIME}|%{BUILDHOST}|%{SOURCERPM}|%{LICENSE}|%{PACKAGER}\n" | sed 's/(none)://g' | sort > "${logs_path}/$(hostname)-rpms-list-$1.log"
+    echo "Verifying RPMs installed $1 the switch against RPM database... - ${logs_path}/$(hostname)-rpms-list-$1.log"
+    rpm -Va | sort -k3 > "${logs_path}/$(hostname)-rpms-verified-$1.log"
   fi
   set -euo pipefail
 }
@@ -174,6 +176,9 @@ prepare_pre_migration_environment() {
   os_version=$(rpm -q "${old_release}" --qf "%{version}")
   major_os_version=${os_version:0:1}
   base_packages=(basesystem grub2 grubby initscripts plymouth)
+  
+  for file in /etc/yum/protected.d/*.conf ; do mv "${file}" "${file}.disabled" ; done
+  
   case "${old_release}" in
     redhat-release*)
       echo "RHEL detected. Checking subscription status..."
@@ -184,8 +189,6 @@ prepare_pre_migration_environment() {
 keys, certificates, etc. if necessary and remove the system from subscription
 management service with 'subscription-manager unregister', then run this script again."
       fi
-      echo "Unprotecting Red Hat-related assets..."
-      rm -f /etc/yum/protected.d/{redhat-release,setup}.conf
       ;;
   esac
   if [ "$preserve" != "true" ]; then
@@ -597,8 +600,6 @@ fix_oracle_shenanigans() {
   set +euo pipefail
   if [[ "$old_release" =~ oracle ]]; then
     echo "Dealing with Oracle Linux curiosities..."
-    echo "Unprotecting systemd temporarily..."
-    mv /etc/yum/protected.d/systemd.conf /etc/yum/protected.d/systemd.conf.bak
     rpm -e --nodeps $(rpm -qa | grep "oracle")
     yum downgrade --skip-broken -y yum 
     yum downgrade --skip-broken -y $(for suffixable in $(rpm -qa | egrep "\.0\.[1-9]\.el") ; do rpm -q $suffixable --qf '%{NAME}\n' ; done)
@@ -656,11 +657,15 @@ disable_el_repos_if_custom_repo_is_provided() {
   # from an Enterprise Linux 8.4 (old version) to EuroLinux 8.4.
   if [ -n "$path_to_internal_repo_file" ]; then
     case "$os_version" in
-      8*|9*)
+      8.6|8.7|8.8|8.9|8.10|9*)
         # Disabling the repos for offline migration is applicable to EL8 only
         # since on EL7 the core repos are skipped along with skipping EuroMan
         # registration. These below are provided by the el-release package.
         echo "Disabling the EuroLinux 8-provided repos for offline migration..."
+        dnf config-manager --disable {baseos,appstream,powertools}
+        ;;
+      8.3|8.4|8.5|9*)
+        echo "Disabling the EuroLinux 8-provided 'certify' repos for offline migration..."
         dnf config-manager --disable certify-{baseos,appstream,powertools}
         ;;
       7*)
@@ -677,14 +682,21 @@ install_el_base() {
   # removed by a package manager.
   echo "Installing base packages for EuroLinux..."
 
-  if ! yum shell -y <<EOF
-  remove ${bad_packages[@]}
-  install ${base_packages[@]}
-  run
+  case "$os_version" in
+    8*|9*)
+      if ! yum shell -y <<EOF
+      remove ${bad_packages[@]}
+      install ${base_packages[@]}
+      run
 EOF
-  then
-    exit_message "Could not install base packages. Run 'yum distro-sync' to manually install them."
-  fi
+      then
+        exit_message "Could not install base packages. Run 'yum distro-sync' to manually install them."
+      fi
+      ;;
+    7*)
+      yum reinstall -y \*
+      ;;
+  esac
 }
 
 update_initrd() {
@@ -753,15 +765,6 @@ deal_with_problematic_rpms() {
       [ $(rpm -qa "qemu-guest-agent") ] && sudo dnf downgrade -y qemu-guest-agent || sudo dnf remove -y qemu-guest-agent ;;
     *) : ;;
   esac
-}
-
-reinstall_all_rpms() {
-  # A safety measure - all packages will be reinstalled and later on compared
-  # if they belong to EuroLinux or not. If not, this might not be a problem at
-  # all - it depends if they are from other vendors you migrated from or third
-  # party repositories such as EPEL.
-  echo "Reinstalling all RPMs..."
-  yum reinstall -y \*
 }
 
 fix_reinstalled_rpms() {
@@ -876,18 +879,13 @@ remove_leftovers() {
     echo "Reminder: the repos provided by the el-release package are kept as disabled."
     mv "${reposdir}/switch-to-eurolinux.repo" "${reposdir}/eurolinux-offline.repo"
   fi
-
-  if [[ "$old_release" =~ oraclelinux-release-(el)?[78] ]] ; then
-    echo "Protecting systemd just as it was initially set up in Oracle Linux..."
-    mv /etc/yum/protected.d/systemd.conf.bak /etc/yum/protected.d/systemd.conf
-  fi
 }
 
 verify_generated_rpms_info() {
   generate_rpms_info after
   if [ "$skip_verification" != "true" ]; then
     echo "Review the output of following files:"
-    find /var/tmp/ -type f -name "$(hostname)-rpms-*.log"
+    find "${logs_path}" -type f -name "$(hostname)-rpms-*.log"
   fi
 }
 
@@ -936,7 +934,6 @@ main() {
   el_distro_sync
   restore_modules
   deal_with_problematic_rpms
-  reinstall_all_rpms
   fix_reinstalled_rpms
   compare_all_rpms
   remove_distro_gpg_pubkey
@@ -947,10 +944,11 @@ main() {
   congratulations
 }
 
-while getopts "fhp:r:u:vw" option; do
+while getopts "fhl:p:r:u:vw" option; do
     case "$option" in
         f) skip_warning="true" ;;
         h) usage ;;
+        l) logs_path="$OPTARG" ;;
         p) el_euroman_password="$OPTARG" ;;
         r) path_to_internal_repo_file="$OPTARG" ;;
         u) el_euroman_user="$OPTARG" ;;
