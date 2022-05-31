@@ -177,7 +177,9 @@ prepare_pre_migration_environment() {
   major_os_version=${os_version:0:1}
   base_packages=(basesystem grub2 grubby initscripts plymouth)
   
+  set +e
   for file in /etc/yum/protected.d/*.conf ; do mv "${file}" "${file}.disabled" ; done
+  set -e
   
   case "${old_release}" in
     redhat-release*)
