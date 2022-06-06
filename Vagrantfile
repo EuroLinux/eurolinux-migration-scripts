@@ -68,7 +68,7 @@ Vagrant.configure("2") do |config|
   config.vm.define "oracle8-5" do |i|
     i.vm.box = "eurolinux-vagrant/oracle-linux-8"
     i.vm.hostname = "oracle8-5"
-    i.vm.box_version = "8.5.14"
+    i.vm.box_version = "8.5.11"
   end
 
   config.vm.define "oracle8-6" do |i|
