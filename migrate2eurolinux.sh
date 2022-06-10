@@ -77,7 +77,7 @@ final_failure() {
 
 check_fips() {
   if [ "$(grep 'fips=1' /proc/cmdline)" ]; then
-    exit_message "You appear to be running a system in FIPS mode, which is not supported for migration."
+    exit_message "You appear to be running a system in FIPS mode, which is not supported for migration. This case requires an individual migration approach that can be received by contacting our technical department. Please use the medium our sales department provided after a subscription has been purchased."
   fi
 }
 
