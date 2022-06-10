@@ -11,22 +11,19 @@ info on how to make the script remove them and other options.
 
 ## Support
 
-The following distributions are supported on the x86_64 architecture:
+The following distributions are supported on the `x86_64` architecture:
 
 - AlmaLinux 8
-- AlmaLinux 9 Beta\*
+- AlmaLinux 9
 - CentOS 7
 - CentOS 8
 - Oracle Linux 7
 - Oracle Linux 8
 - Red Hat Enterprise Linux 7
 - Red Hat Enterprise Linux 8
-- Red Hat Enterprise Linux 9 Beta\*
+- Red Hat Enterprise Linux 9
 - Rocky Linux 8
 - Scientific Linux 7
-
-\** Please, keep in mind that since this is a Beta release, things may change
-rapidly and the migration script may not be able to keep up with them.*
 
 The system that you want to migrate shall be up-to-date and the script will, by
 default, use the newest packages we provide.   
@@ -85,6 +82,7 @@ You can specify several parameters:
   running non-interactively.
 - `-u` to specify your EuroMan username
 - `-p` to specify your EuroMan password
+- `-l` to specify a custom path for a logfile the script will create
 - `-r` to use your custom .repo file which points to your own local EuroLinux
   mirror
 - `-w` to remove all detectable non-EuroLinux components such as packages from

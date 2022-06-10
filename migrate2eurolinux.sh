@@ -327,32 +327,7 @@ create_temp_el_repo() {
     cd "$reposdir"
     echo "Creating a temporary repo file for migration..."
     case "$os_version" in
-      9*)
-        cat > "switch-to-eurolinux.repo" <<-EOF
-[certify-baseos]
-name = EuroLinux beta BaseOS
-baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/${major_os_version}/\$basearch/certify-beta-BaseOS/os
-enabled=1
-gpgcheck=0
-skip_if_unavailable=1
-
-[certify-appstream]
-name = EuroLinux beta AppStream
-baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/${major_os_version}/\$basearch/certify-beta-AppStream/os
-enabled=1
-gpgcheck=0
-skip_if_unavailable=1
-
-[certify-powertools]
-name = EuroLinux beta PowerTools
-baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/${major_os_version}/\$basearch/certify-beta-PowerTools/os
-enabled=1
-gpgcheck=0
-skip_if_unavailable=1
-
-EOF
-        ;;
-      8*)
+      8*|9*)
         cat > "switch-to-eurolinux.repo" <<-EOF
 [certify-baseos]
 name = EuroLinux certify BaseOS
@@ -371,7 +346,7 @@ gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-eurolinux${major_os_version}
 skip_if_unavailable=1
 
 [certify-powertools]
-name = EuroLinux certify PowerTools
+name = EuroLinux certify PowerTools/CRB
 baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/${major_os_version}/\$basearch/certify-PowerTools/os
 enabled=1
 gpgcheck=1
