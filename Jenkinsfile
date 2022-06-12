@@ -87,28 +87,28 @@ pipeline {
                 }
             }
         }
-        //stage("Migrate supported systems to EuroLinux 9 and preserve non-EuroLinux packages"){
-        //    steps{
-        //        catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-        //          script{
-        //              parallel supported_9_machine_names.collectEntries { vagrant_machine -> [ "${vagrant_machine}": {
-        //                      stage("$vagrant_machine") {
-        //                          sleep(5 * Math.random())
-        //                          sh("vagrant destroy $vagrant_machine -f")
-        //                          sh("vagrant up $vagrant_machine")
-        //                          sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -b'")
-        //                          sh("vagrant ssh $vagrant_machine -c \"sudo /home/vagrant/eurolinux-migration-scripts/migrate2eurolinux.sh -f -v && sudo reboot\" || true")
-        //                          sleep(300)
-        //                          sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/test_what_non_el_remains_after_migration.sh -t'")
-        //                          sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -a' || true")
-        //                          sh("vagrant destroy $vagrant_machine -f")
-        //                      }
-        //                  }]
-        //              }
-        //          }
-        //        }
-        //    }
-        //}
+        stage("Migrate supported systems to EuroLinux 9 and preserve non-EuroLinux packages"){
+            steps{
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                  script{
+                      parallel supported_9_machine_names.collectEntries { vagrant_machine -> [ "${vagrant_machine}": {
+                              stage("$vagrant_machine") {
+                                  sleep(5 * Math.random())
+                                  sh("vagrant destroy $vagrant_machine -f")
+                                  sh("vagrant up $vagrant_machine")
+                                  sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -b'")
+                                  sh("vagrant ssh $vagrant_machine -c \"sudo /home/vagrant/eurolinux-migration-scripts/migrate2eurolinux.sh -f -v && sudo reboot\" || true")
+                                  sleep(300)
+                                  sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/test_what_non_el_remains_after_migration.sh -t'")
+                                  sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -a' || true")
+                                  sh("vagrant destroy $vagrant_machine -f")
+                              }
+                          }]
+                      }
+                  }
+                }
+            }
+        }
         stage("Migrate supported systems to EuroLinux 8 and preserve non-EuroLinux packages"){
             steps{
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {

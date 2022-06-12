@@ -17,7 +17,7 @@ skip_warning=""
 # These are all the packages we need to remove. Some may not reside in this
 # array since they'll be swapped later on once EuroLinux repositories have been
 # added.
-bad_packages=(almalinux-backgrounds almalinux-backgrounds-extras almalinux-indexhtml almalinux-logos almalinux-release almalinux-release-opennebula-addons bcache-tools btrfs-progs centos-backgrounds centos-gpg-keys centos-indexhtml centos-linux-release centos-linux-repos centos-logos centos-release centos-release-advanced-virtualization centos-release-ansible26 centos-release-ansible-27 centos-release-ansible-28 centos-release-ansible-29 centos-release-azure centos-release-ceph-jewel centos-release-ceph-luminous centos-release-ceph-nautilus centos-release-ceph-octopus centos-release-configmanagement centos-release-cr centos-release-dotnet centos-release-fdio centos-release-gluster40 centos-release-gluster41 centos-release-gluster5 centos-release-gluster6 centos-release-gluster7 centos-release-gluster8 centos-release-gluster-legacy centos-release-messaging centos-release-nfs-ganesha28 centos-release-nfs-ganesha30 centos-release-nfv-common centos-release-nfv-openvswitch centos-release-openshift-origin centos-release-openstack-queens centos-release-openstack-rocky centos-release-openstack-stein centos-release-openstack-train centos-release-openstack-ussuri centos-release-opstools centos-release-ovirt42 centos-release-ovirt43 centos-release-ovirt44 centos-release-paas-common centos-release-qemu-ev centos-release-qpid-proton centos-release-rabbitmq-38 centos-release-samba411 centos-release-samba412 centos-release-scl centos-release-scl-rh centos-release-storage-common centos-release-virt-common centos-release-xen centos-release-xen-410 centos-release-xen-412 centos-release-xen-46 centos-release-xen-48 centos-release-xen-common centos-repos desktop-backgrounds-basic insights-client libreport-centos libreport-plugin-mantisbt libreport-plugin-rhtsupport libreport-rhel libreport-rhel-anaconda-bugzilla libreport-rhel-bugzilla libdtrace-ctf oracle-backgrounds oracle-epel-release-el8 oracle-indexhtml oraclelinux-release oraclelinux-release-el7 oraclelinux-release-el8 oracle-logos python3-dnf-plugin-ulninfo python3-syspurpose python-oauth redhat-backgrounds Red_Hat_Enterprise_Linux-Release_Notes-7-en-US redhat-indexhtml redhat-logos redhat-release redhat-release-eula redhat-release-server redhat-support-lib-python redhat-support-tool rhc rocky-backgrounds rocky-gpg-keys rocky-indexhtml rocky-logos rocky-obsolete-packages rocky-release rocky-repos sl-logos uname26 yum-conf-extras yum-conf-repos)
+bad_packages=(almalinux-backgrounds almalinux-backgrounds-extras almalinux-gpg-keys almalinux-indexhtml almalinux-logos almalinux-release almalinux-release-opennebula-addons almalinux-repos bcache-tools btrfs-progs centos-backgrounds centos-gpg-keys centos-indexhtml centos-linux-release centos-linux-repos centos-logos centos-release centos-release-advanced-virtualization centos-release-ansible26 centos-release-ansible-27 centos-release-ansible-28 centos-release-ansible-29 centos-release-azure centos-release-ceph-jewel centos-release-ceph-luminous centos-release-ceph-nautilus centos-release-ceph-octopus centos-release-configmanagement centos-release-cr centos-release-dotnet centos-release-fdio centos-release-gluster40 centos-release-gluster41 centos-release-gluster5 centos-release-gluster6 centos-release-gluster7 centos-release-gluster8 centos-release-gluster-legacy centos-release-messaging centos-release-nfs-ganesha28 centos-release-nfs-ganesha30 centos-release-nfv-common centos-release-nfv-openvswitch centos-release-openshift-origin centos-release-openstack-queens centos-release-openstack-rocky centos-release-openstack-stein centos-release-openstack-train centos-release-openstack-ussuri centos-release-opstools centos-release-ovirt42 centos-release-ovirt43 centos-release-ovirt44 centos-release-paas-common centos-release-qemu-ev centos-release-qpid-proton centos-release-rabbitmq-38 centos-release-samba411 centos-release-samba412 centos-release-scl centos-release-scl-rh centos-release-storage-common centos-release-virt-common centos-release-xen centos-release-xen-410 centos-release-xen-412 centos-release-xen-46 centos-release-xen-48 centos-release-xen-common centos-repos desktop-backgrounds-basic insights-client libreport-centos libreport-plugin-mantisbt libreport-plugin-rhtsupport libreport-rhel libreport-rhel-anaconda-bugzilla libreport-rhel-bugzilla libdtrace-ctf oracle-backgrounds oracle-epel-release-el8 oracle-indexhtml oraclelinux-release oraclelinux-release-el7 oraclelinux-release-el8 oracle-logos python3-dnf-plugin-ulninfo python3-syspurpose python-oauth redhat-backgrounds Red_Hat_Enterprise_Linux-Release_Notes-7-en-US redhat-indexhtml redhat-logos redhat-release redhat-release-eula redhat-release-server redhat-support-lib-python redhat-support-tool rhc rocky-backgrounds rocky-gpg-keys rocky-indexhtml rocky-logos rocky-obsolete-packages rocky-release rocky-repos sl-logos uname26 yum-conf-extras yum-conf-repos)
 
 
 usage() {
@@ -327,32 +327,7 @@ create_temp_el_repo() {
     cd "$reposdir"
     echo "Creating a temporary repo file for migration..."
     case "$os_version" in
-      9*)
-        cat > "switch-to-eurolinux.repo" <<-EOF
-[certify-baseos]
-name = EuroLinux beta BaseOS
-baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/${major_os_version}/\$basearch/certify-beta-BaseOS/os
-enabled=1
-gpgcheck=0
-skip_if_unavailable=1
-
-[certify-appstream]
-name = EuroLinux beta AppStream
-baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/${major_os_version}/\$basearch/certify-beta-AppStream/os
-enabled=1
-gpgcheck=0
-skip_if_unavailable=1
-
-[certify-powertools]
-name = EuroLinux beta PowerTools
-baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/${major_os_version}/\$basearch/certify-beta-PowerTools/os
-enabled=1
-gpgcheck=0
-skip_if_unavailable=1
-
-EOF
-        ;;
-      8*)
+      8*|9*)
         cat > "switch-to-eurolinux.repo" <<-EOF
 [certify-baseos]
 name = EuroLinux certify BaseOS
@@ -371,7 +346,7 @@ gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-eurolinux${major_os_version}
 skip_if_unavailable=1
 
 [certify-powertools]
-name = EuroLinux certify PowerTools
+name = EuroLinux certify PowerTools/CRB
 baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/${major_os_version}/\$basearch/certify-PowerTools/os
 enabled=1
 gpgcheck=1
@@ -650,6 +625,7 @@ force_el_release() {
   fi
 
   rpm -i --force el-release*
+  echo "el-release" > /etc/yum/protected.d/el-release.conf
   set -euo pipefail
 }
 
@@ -712,7 +688,7 @@ update_initrd() {
 el_distro_sync() {
   # Make sure all packages are synchronized with the ones EuroLinux provides.
   echo "Switch successful. Syncing with EuroLinux repositories..."
-  if ! yum -y distro-sync; then
+  if ! yum -y distro-sync ; then
     exit_message "Could not automatically sync with EuroLinux repositories.
   Check the output of 'yum distro-sync' to manually resolve the issue."
   fi
