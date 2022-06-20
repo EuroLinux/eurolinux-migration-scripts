@@ -831,7 +831,7 @@ update_bootloader() {
     echo "Performing preliminary tasks for updating EFI boot..."
     if [ "$arch" == "x86_64"]; then
       yum install -y efibootmgr grub2-efi-x64 mokutil shim-x64
-    elif [ "$arch" == "aarch64" ]
+    elif [ "$arch" == "aarch64" ]; then
       yum install -y efibootmgr grub2-efi-aa64 mokutil shim-aa64
     fi
     grub2_conf="/etc/grub2-efi.cfg"
@@ -848,7 +848,7 @@ update_bootloader() {
     echo "Updating EFI boot."
     if [ "$arch" == "x86_64"]; then
       efibootmgr -c -d "/dev/$efi_pkname" -l "/EFI/eurolinux/shimx64.efi" -L "EuroLinux $major_os_version" -p "$efi_partition" -v
-    elif [ "$arch" == "aarch64" ]
+    elif [ "$arch" == "aarch64" ]; then
       efibootmgr -c -d "/dev/$efi_pkname" -l "/EFI/eurolinux/shimaa64.efi" -L "EuroLinux $major_os_version" -p "$efi_partition" -v
     fi
   fi
