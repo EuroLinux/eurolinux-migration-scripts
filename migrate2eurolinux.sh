@@ -6,6 +6,7 @@
 set -euo pipefail
 
 # GLOBAL variables
+arch="$(arch)"
 answer=""
 github_url="https://github.com/EuroLinux/eurolinux-migration-scripts"
 logs_path="/var/tmp"
@@ -828,7 +829,11 @@ update_bootloader() {
   # Update bootloader entries and EFI boot if appropriate.
   if [ -d /sys/firmware/efi ]; then
     echo "Performing preliminary tasks for updating EFI boot..."
-    yum install -y efibootmgr grub2-efi-x64 mokutil shim-x64
+    if [ "$arch" == "x86_64"]; then
+      yum install -y efibootmgr grub2-efi-x64 mokutil shim-x64
+    elif [ "$arch" == "aarch64" ]
+      yum install -y efibootmgr grub2-efi-aa64 mokutil shim-aa64
+    fi
     grub2_conf="/etc/grub2-efi.cfg"
     efi_device="$(findmnt --noheadings --target /boot/efi --output source)"
     efi_kname="$(lsblk -dno kname $efi_device)"
@@ -841,7 +846,11 @@ update_bootloader() {
   grub2-mkconfig -o "$grub2_conf"
   if [ -d /sys/firmware/efi ]; then
     echo "Updating EFI boot."
-    efibootmgr -c -d "/dev/$efi_pkname" -l "/EFI/eurolinux/shimx64.efi" -L "EuroLinux $major_os_version" -p "$efi_partition" -v
+    if [ "$arch" == "x86_64"]; then
+      efibootmgr -c -d "/dev/$efi_pkname" -l "/EFI/eurolinux/shimx64.efi" -L "EuroLinux $major_os_version" -p "$efi_partition" -v
+    elif [ "$arch" == "aarch64" ]
+      efibootmgr -c -d "/dev/$efi_pkname" -l "/EFI/eurolinux/shimaa64.efi" -L "EuroLinux $major_os_version" -p "$efi_partition" -v
+    fi
   fi
 }
 
