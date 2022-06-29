@@ -88,12 +88,6 @@ check_secureboot(){
   fi
 }
 
-check_mdraid() {
-  if ls /dev/md* ; then
-    exit_message "^ You appear to be running a system on software RAID. Migration from such a system needs to be tested out thoroughly and is not yet officially supported."
-  fi
-}
-
 generate_rpms_info() {
   # Generate an RPM database log and a list of RPMs installed on your system
   # at any point in time.
@@ -895,7 +889,6 @@ main() {
   warning_message
   check_fips
   check_secureboot
-  check_mdraid
   check_root
   check_required_packages
   check_distro
