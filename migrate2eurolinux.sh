@@ -326,7 +326,7 @@ create_temp_el_repo() {
         cat > "switch-to-eurolinux.repo" <<-EOF
 [certify-baseos]
 name = EuroLinux certify BaseOS
-baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/${major_os_version}/\$basearch/certify-BaseOS/os
+baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/${major_os_version}/\$basearch/BaseOS/os
 enabled=1
 gpgcheck=1
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-eurolinux${major_os_version}
@@ -334,7 +334,7 @@ skip_if_unavailable=1
 
 [certify-appstream]
 name = EuroLinux certify AppStream
-baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/${major_os_version}/\$basearch/certify-AppStream/os
+baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/${major_os_version}/\$basearch/AppStream/os
 enabled=1
 gpgcheck=1
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-eurolinux${major_os_version}
@@ -342,7 +342,7 @@ skip_if_unavailable=1
 
 [certify-powertools]
 name = EuroLinux certify PowerTools/CRB
-baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/${major_os_version}/\$basearch/certify-PowerTools/os
+baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/${major_os_version}/\$basearch/PowerTools/os
 enabled=1
 gpgcheck=1
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-eurolinux${major_os_version}
@@ -637,7 +637,7 @@ disable_el_repos_if_custom_repo_is_provided() {
         echo "Disabling the EuroLinux 8-provided repos for offline migration..."
         dnf config-manager --disable {baseos,appstream,powertools}
         ;;
-      8.3|8.4|8.5|9*)
+      8.3|8.4|8.5)
         echo "Disabling the EuroLinux 8-provided 'certify' repos for offline migration..."
         dnf config-manager --disable certify-{baseos,appstream,powertools}
         ;;
