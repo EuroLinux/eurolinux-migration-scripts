@@ -12,6 +12,7 @@ Vagrant.configure("2") do |config|
 
   config.vm.provider "libvirt" do |libvirt|
     libvirt.random_hostname = true
+    libvirt.uri = 'qemu:///system'
   #  libvirt.storage :file, :device => :cdrom, :path => "/var/lib/libvirt/images/mirror.iso"
   end
 
