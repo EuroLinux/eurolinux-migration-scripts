@@ -4,9 +4,9 @@ ${currentBuild.fullDisplayName} / ${currentBuild.number}
 Check url: ${currentBuild.absoluteUrl}.
 """
 
-def supported_9_machine_names = ["almalinux9", "rhel9"]
-def supported_8_machine_names = ["almalinux8", "centos8-5", "generic-rhel8", "oracle8", "rhel8", "rockylinux8"]
-def supported_7_machine_names = ["centos7", "generic-rhel7", "oracle7", "rhel7", "scientific7"]
+def supported_9_machine_names = ["almalinux9", "generic-rhel9"]
+def supported_8_machine_names = ["almalinux8", "centos8-5", "generic-rhel8", "oracle8", "rockylinux8"]
+def supported_7_machine_names = ["centos7", "generic-rhel7", "oracle7", "scientific7"]
 
 pipeline {
     agent {
@@ -16,9 +16,6 @@ pipeline {
     }
     environment {
         EUROMAN_CREDENTIALS = credentials('EUROMAN_CREDENTIALS')
-        VAGRANT_BOX_RHEL7_URL = credentials('VAGRANT_BOX_RHEL7_URL')
-        VAGRANT_BOX_RHEL8_URL = credentials('VAGRANT_BOX_RHEL8_URL')
-        VAGRANT_BOX_RHEL9_URL = credentials('VAGRANT_BOX_RHEL9_URL')
     }
     stages {
         stage("Migrate supported systems to EuroLinux 9"){
