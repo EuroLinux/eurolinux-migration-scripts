@@ -82,27 +82,6 @@ Vagrant.configure("2") do |config|
     i.vm.hostname = "oracle8"
   end
 
-  config.vm.define "rhel7" do |i|
-    i.vm.box = "rhel7"
-    i.vm.box_download_insecure = true
-    i.vm.box_url = ENV['VAGRANT_BOX_RHEL7_URL']
-    i.vm.hostname = "rhel7"
-  end
-
-  config.vm.define "rhel8" do |i|
-    i.vm.box = "rhel8"
-    i.vm.box_download_insecure = true
-    i.vm.box_url = ENV['VAGRANT_BOX_RHEL8_URL']
-    i.vm.hostname = "rhel8"
-  end
-
-  config.vm.define "rhel9" do |i|
-    i.vm.box = "rhel9"
-    i.vm.box_download_insecure = true
-    i.vm.box_url = ENV['VAGRANT_BOX_RHEL9_URL']
-    i.vm.hostname = "rhel9"
-  end
-
   config.vm.define "generic-rhel7" do |i|
     i.vm.box = "generic/rhel7"
     i.vm.hostname = "generic-rhel7"
@@ -112,6 +91,11 @@ Vagrant.configure("2") do |config|
   config.vm.define "generic-rhel8" do |i|
     i.vm.box = "generic/rhel8"
     i.vm.hostname = "generic-rhel8"
+  end
+
+  config.vm.define "generic-rhel9" do |i|
+    i.vm.box = "generic/rhel9"
+    i.vm.hostname = "generic-rhel9"
   end
 
   config.vm.define "rockylinux8-4" do |i|
