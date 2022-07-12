@@ -579,7 +579,10 @@ fix_oracle_shenanigans() {
     yum downgrade --skip-broken -y $(for suffixable in $(rpm -qa | egrep "\.0\.[1-9]\.el") ; do rpm -q $suffixable --qf '%{NAME}\n' ; done)
     unlink /etc/os-release || true
     case "$os_version" in
-      8*|9*)
+      9*)
+        yum remove -y --skip-broken python3-hwdata rhnlib
+        ;;
+      8*)
         yum remove --skip-broken -y bcache-tools btrfs-progs python3-dnf-plugin-ulninfo
         echo "Getting the list of Oracle-branded modules..."
         oracle_modules_enabled=( $(dnf module list --enabled | grep ' ol8' | cut -d ' ' -f 1) )
