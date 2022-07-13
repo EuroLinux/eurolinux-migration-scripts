@@ -688,7 +688,7 @@ update_initrd() {
 el_distro_sync() {
   # Make sure all packages are synchronized with the ones EuroLinux provides.
   echo "Switch successful. Syncing with EuroLinux repositories..."
-  if ! yum -y distro-sync --skip-broken ; then
+  if ! yum -y distro-sync ; then
     exit_message "Could not automatically sync with EuroLinux repositories.
   Check the output of 'yum distro-sync' to manually resolve the issue."
   fi
