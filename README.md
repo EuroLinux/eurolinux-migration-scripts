@@ -19,6 +19,7 @@ The following distributions are supported on the `x86_64` architecture:
 - CentOS 8
 - Oracle Linux 7
 - Oracle Linux 8
+- Oracle Linux 9
 - Red Hat Enterprise Linux 7
 - Red Hat Enterprise Linux 8
 - Red Hat Enterprise Linux 9
