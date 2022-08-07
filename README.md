@@ -24,6 +24,7 @@ The following distributions are supported on the `x86_64` architecture:
 - Red Hat Enterprise Linux 8
 - Red Hat Enterprise Linux 9
 - Rocky Linux 8
+- Rocky Linux 9
 - Scientific Linux 7
 
 The system that you want to migrate shall be up-to-date and the script will, by
