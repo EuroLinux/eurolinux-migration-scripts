@@ -126,6 +126,11 @@ Vagrant.configure("2") do |config|
     i.vm.hostname = "rockylinux8"
   end
 
+  config.vm.define "rockylinux9" do |i|
+    i.vm.box = "eurolinux-vagrant/rocky-9"
+    i.vm.hostname = "rockylinux9"
+  end
+
   config.vm.define "scientific7" do |i|
     i.vm.box = "eurolinux-vagrant/scientific-linux-7"
     i.vm.hostname = "scientific7"
