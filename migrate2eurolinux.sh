@@ -1,5 +1,6 @@
 #!/bin/bash
-# Initially based on Oracle's centos2ol script. Thus licensed under the Universal Permissive License v1.0
+# Initially based on Oracle's centos2ol script. Thus
+# licensed under the Universal Permissive License v1.0
 # Copyright (c) 2020, 2021 Oracle and/or its affiliates.
 # Copyright (c) 2021, 2022 EuroLinux
 
@@ -15,9 +16,9 @@ preserve="true"
 script_dir="$(dirname $(readlink -f $0))"
 skip_verification="false"
 skip_warning=""
-# These are all the packages we need to remove. Some may not reside in
-# this array since they'll be swapped later on once EuroLinux
-# repositories have been added.
+# These are all the packages we need to remove. Some may not
+# reside in this array since they'll be swapped later on
+# once EuroLinux repositories have been added.
 bad_packages=(almalinux-backgrounds almalinux-backgrounds-extras \
 almalinux-gpg-keys almalinux-indexhtml almalinux-logos \
 almalinux-release almalinux-release-opennebula-addons \
@@ -75,7 +76,8 @@ usage() {
     echo "-r      Use a custom .repo file (for offline migration)"
     echo "-v      Don't verify RPMs"
     echo "-w      Remove all detectable non-EuroLinux extras"
-    echo "        (e.g. third-party repositories and backed-up .repo files)"
+    echo "        (e.g. third-party repositories and
+backed-up .repo files)"
     echo
     echo "OPTIONS applicable to Enterprise Linux 7 or older"
     echo "-u      Your EuroMan username (usually an email address)"
@@ -84,8 +86,8 @@ usage() {
 }
 
 warning_message() {
-  # Display a warning message about backups unless running non-interactively
-  # (assumed default behavior).
+  # Display a warning message about backups unless running
+  # non-interactively (assumed default behavior).
   if [ "$skip_warning" != "true" ]; then
     echo "This script will migrate your existing Enterprise Linux
 system to EuroLinux. Extra precautions have been arranged but
