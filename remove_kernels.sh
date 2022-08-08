@@ -1,8 +1,8 @@
 #!/bin/bash 
 # name: remove_kernels.sh
 #
-# description: remove kernels and kernel-related packages from the distro the
-# migration has been performed from
+# description: remove kernels and kernel-related packages
+# from the distro the migration has been performed from
 #
 # Copyright 2021 EuroLinux, Inc.
 # Author: Tomasz Podsiadły <tp@euro-linux.com>
@@ -42,8 +42,9 @@ check_successful_migration() {
 
   release_provider="$(rpm -q --whatprovides /etc/redhat-release)"
   if [[ ! "$release_provider" =~ ^el-release ]]; then
-    exit_message "Could not determine if a migration was successful -
-/etc/redhat-release is provided by the package \"$release_provider\" rather than 
+    exit_message "Could not determine if a migration was
+successful - /etc/redhat-release is provided by the package
+\"$release_provider\" rather than 
 el-release."
   fi
 
@@ -111,9 +112,6 @@ remove_old_rescue_kernels() {
   # Only applicable to EL8 right now. To be ported to EL7 if needed.
   echo "Removing old 'rescue' kernels and bootloader entries..."
   find /boot -name '*vmlinuz*rescue*' -exec rm -f {} + -exec grubby --remove-kernel={} \;
-
-  # Generation of a new rescue kernel is not yet production-ready and thus commented out
-  #kernel-install add "${latest_eurolinux_kernel_path##*/vmlinuz-}" "$latest_eurolinux_kernel_path"
 }
 
 set_latest_eurolinux_kernel() {
