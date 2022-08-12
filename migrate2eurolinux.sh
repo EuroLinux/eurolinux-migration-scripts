@@ -411,18 +411,11 @@ update_bootloader() {
   # Update bootloader entries and EFI boot if appropriate.
   if [ -d /sys/firmware/efi ]; then
     echo "Performing preliminary tasks for updating EFI boot..."
-    yum install -y efibootmgr grub2-efi-x64 mokutil shim-x64
-    grub2_conf="/etc/grub2-efi.cfg"
+    yum install -y --skip-broken efibootmgr grub2-efi-x64 mokutil shim-x64
     efi_device="$(findmnt --noheadings --target /boot/efi --output source)"
     efi_kname="$(lsblk -dno kname $efi_device)"
     efi_pkname="$(lsblk -dno pkname $efi_device)"
     efi_partition="$(cat /sys/block/$efi_pkname/$efi_kname/partition)" # Should be "1" by default but let's check just in case...
-  else
-    grub2_conf="/etc/grub2.cfg"
-  fi
-  echo "Updating the GRUB2 bootloader at $grub2_conf (symlinked to $(readlink $grub2_conf))."
-  grub2-mkconfig -o "$grub2_conf"
-  if [ -d /sys/firmware/efi ]; then
     echo "Updating EFI boot."
     efibootmgr -c -d "/dev/$efi_pkname" -l "/EFI/eurolinux/shimx64.efi" -L "EuroLinux $major_os_version" -p "$efi_partition" -v
   fi
