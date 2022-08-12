@@ -445,7 +445,6 @@ main() {
   warning_message
   check_fips
   check_secureboot
-  check_mdraid
   check_root
   check_required_packages
   check_distro
