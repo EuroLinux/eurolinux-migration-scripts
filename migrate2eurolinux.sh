@@ -34,7 +34,7 @@ warning_message() {
   # Display a warning message about backups unless running non-interactively
   # (assumed default behavior).
   if [ "$skip_warning" != "true" ]; then
-    echo "This script will switch your existing Enterprise Linux 7 system repositories to EuroLinux 7's ones, remove that-system-specific packages like logos and if installed in EFI mode, install our shim and update bootloader entries so our one will be used on next boot. Extra precautions have been arranged but there's always the risk of something going wrong in the process and users are always recommended to make a backup."
+    echo "This script will switch your existing Enterprise Linux 6 system repositories to EuroLinux 6's ones, remove that-system-specific packages like logos and if installed in EFI mode, install our shim and update bootloader entries so our one will be used on next boot. Extra precautions have been arranged but there's always the risk of something going wrong in the process and users are always recommended to make a backup."
     echo "Do you want to continue? Type 'YES' if that's the case."
     read answer
     if [[ ! "$answer" =~ ^[Yy][Ee][Ss]$ ]]; then
@@ -76,12 +76,6 @@ check_fips() {
 check_secureboot(){
   if grep -oq 'Secure Boot: enabled' <(bootctl 2>&1) ; then
     exit_message "You appear to be running a system with Secure Boot enabled, which is not yet supported for migration. Disable it first, then run the script again."
-  fi
-}
-
-check_mdraid() {
-  if ls /dev/md* ; then
-    exit_message "^ You appear to be running a system on software RAID. Migration from such a system needs to be tested out thoroughly and is not yet officially supported."
   fi
 }
 
@@ -223,7 +217,7 @@ grab_gpg_keys() {
   # Get EuroLinux public GPG keys; store them in a predefined location before
   # adding any repositories.
   echo "Grabbing EuroLinux GPG keys..."
-  curl "https://fbi.cdn.euro-linux.com/security/RPM-GPG-KEY-eurolinux$major_os_version" > "/etc/pki/rpm-gpg/RPM-GPG-KEY-eurolinux$major_os_version"
+  curl "https://fbi.cdn.euro-linux.com/security/RPM-GPG-KEY-eurolinux" > "/etc/pki/rpm-gpg/RPM-GPG-KEY-eurolinux"
 }
 
 create_temp_el_repo() {
@@ -239,21 +233,21 @@ create_temp_el_repo() {
   cd "$reposdir"
   echo "Creating a temporary repo file for migration..."
   case "$os_version" in
-    7*)
+    6*)
       cat > "switch-to-eurolinux.repo" <<-'EOF'
 [euroman_tmp]
 name=euroman_tmp
-baseurl=https://elupdate.euro-linux.com/pub/enterprise-7/
+baseurl=https://elupdate.euro-linux.com/pub/enterprise-6/
 enabled=1
 gpgcheck=1
-gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-eurolinux7
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-eurolinux
 
 [fbi]
 name = Free Base Image Repo
-baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/7/$basearch/fbi/
+baseurl=https://fbi.cdn.euro-linux.com/dist/eurolinux/server/6/$basearch/fbi/
 enabled=1
 gpgcheck=1
-gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-eurolinux7
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-eurolinux
 
 EOF
       ;;

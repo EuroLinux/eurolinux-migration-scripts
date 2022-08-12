@@ -1,9 +1,9 @@
-# migrate2eurolinux - 'el7-only-switch-repos'
+# migrate2eurolinux - 'el6-only-switch-repos'
 
-## Switch repos of an Enterprise Linux 7 system to EuroLinux 7
+## Switch repos of an Enterprise Linux 6 system to EuroLinux 6
 
-This script will automatically switch repositories of an Enterprise Linux 7
-system to EuroLinux 7's, remove only its exclusive packages like eg.
+This script will automatically switch repositories of an Enterprise Linux 6
+system to EuroLinux 6's, remove only its exclusive packages like eg.
 `centos-linux-release` and if installed in EFI mode, install our shim and
 update bootloader enteries so our one will be used on next boot.
 By default, non-EuroLinux components such as packages from unofficial
@@ -14,9 +14,9 @@ info on how to make the script remove them and other options.
 
 The following distributions are supported on the x86_64 architecture:
 
-- CentOS 7
-- Red Hat Enterprise Linux 7
-- Scientific Linux 7
+- CentOS 6
+- Red Hat Enterprise Linux 6
+- Scientific Linux 6
 
 **If a system has been installed with Secure Boot enabled, make sure that it
 is disabled first before running the script.**
@@ -78,45 +78,3 @@ Or with debug and additional debug messages logging:
 bash -x migrate2eurolinux.sh -f -u 'user@example.com' -p 'password123' | tee -a migration_debug.log
 ```
 
-## Tests
-
-Tests related to proper system functionality have been provided. There's a
-*tests* directory that contains some of our tools that assist us with running
-the tests on Vagrant boxes and contains a *EL-core-functional-tests* directory
-with the actual tests.
-*EL-core-functional-tests* is a distinct responsibility to
-*eurolinux-migration-scripts* and you should refer to [that
-project](https://github.com/EuroLinux/EL-core-functional-tests)'s
-documentation when running on e.g. bare-metal production machines.
-
-### Running the tests
-
-There's a *Vagrantfile* that contains the specification of several systems
-that can be quickly spawned for performing a migration to EuroLinux and
-testing their operational functionality after the migration. 
-
-A quick way for running all the tests on Vagrant virtual machines is to run a
-command like this on your host machine:
-
-```bash
-./tests/wrapper.sh -b centos7
-```
-
-Once a migration has been performed on your CentOS 7 virtual machine,
-this example will run all the tests in these machines and log the testing
-sessions on your host machine.  
-Refer to the comments the scripts provide for additional information.
-
-## Troubleshooting
-
-### The 'filesystem' package installation fails
-
-The migration fails with a message like this:
-```
-Failed:
-  filesystem.x86_64 0:3.2-25.el7
-```
-
-Most likely, you performed an offline migration with an ISO image (or a
-different file) mounted directly at */mnt*. Make sure that only its
-subdirectories are used as mount points.

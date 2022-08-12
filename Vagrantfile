@@ -15,27 +15,20 @@ Vagrant.configure("2") do |config|
   #  libvirt.storage :file, :device => :cdrom, :path => "/var/lib/libvirt/images/mirror.iso"
   end
 
-  config.vm.define "centos7" do |i|
-    i.vm.box = "eurolinux-vagrant/centos-7"
-    i.vm.hostname = "centos7"
+  config.vm.define "centos6" do |i|
+    i.vm.box = "eurolinux-vagrant/centos-6"
+    i.vm.hostname = "centos6"
   end
 
-  config.vm.define "rhel7" do |i|
-    i.vm.box = "rhel7"
-    i.vm.box_download_insecure = true
-    i.vm.box_url = ENV['VAGRANT_BOX_RHEL7_URL']
-    i.vm.hostname = "rhel7"
+  config.vm.define "generic-rhel6" do |i|
+    i.vm.box = "generic/rhel6"
+    i.vm.hostname = "generic-rhel6"
+    i.vm.hostname = "rhel6"
   end
 
-  config.vm.define "generic-rhel7" do |i|
-    i.vm.box = "generic/rhel7"
-    i.vm.hostname = "generic-rhel7"
-    i.vm.hostname = "rhel7"
-  end
-
-  config.vm.define "scientific7" do |i|
-    i.vm.box = "eurolinux-vagrant/scientific-linux-7"
-    i.vm.hostname = "scientific7"
+  config.vm.define "scientific6" do |i|
+    i.vm.box = "eurolinux-vagrant/scientific-linux-6"
+    i.vm.hostname = "scientific6"
   end
 
 end
