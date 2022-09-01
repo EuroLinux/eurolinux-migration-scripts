@@ -687,6 +687,11 @@ update_initrd() {
 
 el_distro_sync() {
   # Make sure all packages are synchronized with the ones EuroLinux provides.
+
+  set +e
+  for file in /etc/yum/protected.d/*.conf ; do mv "${file}" "${file}.disabled" ; done
+  set -e
+
   echo "Switch successful. Syncing with EuroLinux repositories..."
   if ! yum -y distro-sync ; then
     exit_message "Could not automatically sync with EuroLinux repositories.
