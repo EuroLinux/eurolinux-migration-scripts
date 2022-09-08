@@ -613,7 +613,7 @@ force_el_release() {
         dep_check yumdownloader
         ;;
   esac
-  for i in "${bad_packages[@]}" ; do rpm -e --nodeps "$i" || true ; done
+  for i in "${bad_packages[@]}" ; do rpm -e --nodeps --allmatches "$i" || true ; done
 
   # Additional tweak for RHEL 8 - remove these directories manually.
   # Otherwise an error will show up:
