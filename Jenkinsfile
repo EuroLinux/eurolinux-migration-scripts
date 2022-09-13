@@ -4,7 +4,7 @@ ${currentBuild.fullDisplayName} / ${currentBuild.number}
 Check url: ${currentBuild.absoluteUrl}.
 """
 
-def supported_9_machine_names = ["almalinux9", "generic-rhel9", "oracle9"]
+def supported_9_machine_names = ["almalinux9", "generic-rhel9", "oracle9", "rockylinux9"]
 def supported_8_machine_names = ["almalinux8", "centos8-5", "generic-rhel8", "oracle8", "rockylinux8"]
 def supported_7_machine_names = ["centos7", "generic-rhel7", "oracle7", "scientific7"]
 
