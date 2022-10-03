@@ -434,7 +434,13 @@ my_org = client.user.getDetails(key, \"$el_euroman_user\")['org_id']
 print(my_org)
         ")
         echo "Trying to register system with rhnreg_ks..."
-        rhnreg_ks --force --username "$el_euroman_user" --password "$el_euroman_password" --activationkey="$el_org_id-default-$major_os_version"
+        if [ $major_os_version -eq "6" ]; then
+            # ELS Extended Life Support try this one if available if not use EL
+            rhnreg_ks --force --username "$el_euroman_user" --password "$el_euroman_password" --activationkey="$el_org_id-els-$major_os_version" || \
+            rhnreg_ks --force --username "$el_euroman_user" --password "$el_euroman_password" --activationkey="$el_org_id-default-$major_os_version"
+        else
+            rhnreg_ks --force --username "$el_euroman_user" --password "$el_euroman_password" --activationkey="$el_org_id-default-$major_os_version"
+        fi
         ;;
     esac
   fi
