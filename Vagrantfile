@@ -26,6 +26,11 @@ Vagrant.configure("2") do |config|
     i.vm.hostname = "rhel6"
   end
 
+  config.vm.define "eurolinux6" do |i|
+    i.vm.box = "eurolinux-vagrant/eurolinux-6"
+    i.vm.hostname = "eurolinux6"
+  end
+
   config.vm.define "scientific6" do |i|
     i.vm.box = "eurolinux-vagrant/scientific-linux-6"
     i.vm.hostname = "scientific6"
