@@ -25,7 +25,7 @@ pipeline {
                                   sleep(5 * Math.random())
                                   sh("vagrant destroy -f $vagrant_machine")
                                   sh("vagrant up $vagrant_machine")
-                                  sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/migrate2eurolinux.sh -f -v -u $EUROMAN_CREDENTIALS_USR -p $EUROMAN_CREDENTIALS_PSW'")
+                                  sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/migrate2eurolinux.sh -f -u $EUROMAN_CREDENTIALS_USR -p $EUROMAN_CREDENTIALS_PSW'")
                                   sh("vagrant destroy $vagrant_machine -f")
                               }
                           }]
