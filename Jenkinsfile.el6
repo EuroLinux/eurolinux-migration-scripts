@@ -13,7 +13,7 @@ pipeline {
         }
     }
     stages {
-        stage("Migrate 8.6 systems to EuroLinux 8.6"){
+        stage("Switch repos of Enterprise Linux 6.10 systems to EuroLinux/EuroELS"){
             steps{
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                   script{
