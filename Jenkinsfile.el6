@@ -12,6 +12,9 @@ pipeline {
           label 'libvirt'
         }
     }
+    environment {
+        EUROMAN_CREDENTIALS = credentials('EUROMAN_CREDENTIALS')
+    }
     stages {
         stage("Switch repos of Enterprise Linux 6.10 systems to EuroLinux/EuroELS"){
             steps{
