@@ -34,7 +34,7 @@ warning_message() {
   # Display a warning message about backups unless running non-interactively
   # (assumed default behavior).
   if [ "$skip_warning" != "true" ]; then
-    echo "This script will switch your existing Enterprise Linux 6 system repositories to EuroLinux 6's ones, remove that-system-specific packages like logos and if installed in EFI mode, install our shim and update bootloader entries so our one will be used on next boot. Extra precautions have been arranged but there's always the risk of something going wrong in the process and users are always recommended to make a backup."
+    echo "This script will switch your existing Enterprise Linux 6 system repositories to EuroLinux 6's ones and remove that-system-specific packages like logos. Extra precautions have been arranged but there's always the risk of something going wrong in the process and users are always recommended to make a backup."
     echo "Do you want to continue? Type 'YES' if that's the case."
     read answer
     if [[ ! "$answer" =~ ^[Yy][Ee][Ss]$ ]]; then
@@ -418,7 +418,7 @@ remove_leftovers() {
 }
 
 congratulations() {
-  echo "Switch almost complete. EuroLinux recommends rebooting this system."
+  echo "Switch successful!"
 }
 
 main() {
