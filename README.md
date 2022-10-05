@@ -3,12 +3,8 @@
 ## Switch repos of an Enterprise Linux 6 system to EuroLinux 6
 
 This script will automatically switch repositories of an Enterprise Linux 6
-system to EuroLinux 6's, remove only its exclusive packages like eg.
-`centos-linux-release` and if installed in EFI mode, install our shim and
-update bootloader enteries so our one will be used on next boot.
-By default, non-EuroLinux components such as packages from unofficial
-repositories will be preserved - take a look at the [Usage](#usage) section for
-info on how to make the script remove them and other options.
+system to EuroLinux 6's and remove only its exclusive packages like eg.
+`centos-linux-release`. 
 
 ## Support
 
@@ -62,9 +58,6 @@ You can specify several parameters:
   running non-interactively.
 - `-u` to specify your EuroMan username
 - `-p` to specify your EuroMan password
-- `-w` to remove all detectable non-EuroLinux components such as packages from
-  unofficial repositories, .repo files from your current distribution, etc. 
-  rather than preserving them
 
 Sample non-interactive usage:
 
