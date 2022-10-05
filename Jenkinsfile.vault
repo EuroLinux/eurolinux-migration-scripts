@@ -1,0 +1,173 @@
+def erecipients = "devel@euro-linux.com"
+def ebody = """
+${currentBuild.fullDisplayName} / ${currentBuild.number}
+Check url: ${currentBuild.absoluteUrl}.
+"""
+
+def legacy_8_6_machine_names = ["almalinux8-6", "rockylinux8-6", "oracle8-6"]
+def legacy_8_5_machine_names = ["almalinux8-5", "centos8-5", "oracle8-5", "rockylinux8-5"]
+def legacy_8_4_machine_names = ["almalinux8-4", "centos8-4", "rockylinux8-4"]
+
+pipeline {
+    agent {
+        node {
+          label 'libvirt'
+        }
+    }
+    stages {
+        stage("Migrate 8.6 systems to EuroLinux 8.6"){
+            steps{
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                  script{
+                      parallel legacy_8_6_machine_names.collectEntries { vagrant_machine -> [ "${vagrant_machine}": {
+                              stage("$vagrant_machine") {
+                                  sleep(5 * Math.random())
+                                  sh("vagrant destroy -f $vagrant_machine")
+                                  sh("vagrant up $vagrant_machine")
+                                  sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -b'")
+                                  sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/migrate2eurolinux.sh -r /home/vagrant/eurolinux-migration-scripts/vault/vault-8.6.repo -f -v -w'")
+                                  sh("vagrant ssh $vagrant_machine -c 'sudo reboot' || true")
+                                  sleep(300)
+                                  sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/test_what_non_el_remains_after_migration.sh'")
+                                  sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -a'")
+                                  sh("vagrant destroy $vagrant_machine -f")
+                              }
+                          }]
+                      }
+                  }
+                }
+            }
+        }
+        stage("Migrate 8.5 systems to EuroLinux 8.5"){
+            steps{
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                  script{
+                      parallel legacy_8_5_machine_names.collectEntries { vagrant_machine -> [ "${vagrant_machine}": {
+                              stage("$vagrant_machine") {
+                                  sleep(5 * Math.random())
+                                  sh("vagrant destroy -f $vagrant_machine")
+                                  sh("vagrant up $vagrant_machine")
+                                  sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -b'")
+                                  sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/migrate2eurolinux.sh -r /home/vagrant/eurolinux-migration-scripts/vault/vault-8.5.repo -f -v -w'")
+                                  sh("vagrant ssh $vagrant_machine -c 'sudo reboot' || true")
+                                  sleep(300)
+                                  sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/test_what_non_el_remains_after_migration.sh'")
+                                  sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -a'")
+                                  sh("vagrant destroy $vagrant_machine -f")
+                              }
+                          }]
+                      }
+                  }
+                }
+            }
+        }
+        stage("Migrate 8.4 systems to EuroLinux 8.4"){
+            steps{
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                  script{
+                      parallel legacy_8_4_machine_names.collectEntries { vagrant_machine -> [ "${vagrant_machine}": {
+                              stage("$vagrant_machine") {
+                                  sleep(5 * Math.random())
+                                  sh("vagrant destroy -f $vagrant_machine")
+                                  sh("vagrant up $vagrant_machine")
+                                  sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -b'")
+                                  sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/migrate2eurolinux.sh -r /home/vagrant/eurolinux-migration-scripts/vault/vault-8.4.repo -f -v -w'")
+                                  sh("vagrant ssh $vagrant_machine -c 'sudo reboot' || true")
+                                  sleep(300)
+                                  sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/test_what_non_el_remains_after_migration.sh'")
+                                  sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -a'")
+                                  sh("vagrant destroy $vagrant_machine -f")
+                              }
+                          }]
+                      }
+                  }
+                }
+            }
+        }
+        stage("Migrate 8.6 systems to EuroLinux 8.6 and preserve non-EuroLinux packages"){
+            steps{
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                  script{
+                      parallel legacy_8_6_machine_names.collectEntries { vagrant_machine -> [ "${vagrant_machine}": {
+                              stage("$vagrant_machine") {
+                                  sleep(5 * Math.random())
+                                  sh("vagrant destroy -f $vagrant_machine")
+                                  sh("vagrant up $vagrant_machine")
+                                  sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -b'")
+                                  sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/migrate2eurolinux.sh -r /home/vagrant/eurolinux-migration-scripts/vault/vault-8.6.repo -f -v'")
+                                  sh("vagrant ssh $vagrant_machine -c 'sudo reboot' || true")
+                                  sleep(300)
+                                  sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/test_what_non_el_remains_after_migration.sh -t'")
+                                  sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -a'")
+                                  sh("vagrant destroy $vagrant_machine -f")
+                              }
+                          }]
+                      }
+                  }
+                }
+            }
+        }
+        stage("Migrate 8.5 systems to EuroLinux 8.5 and preserve non-EuroLinux packages"){
+            steps{
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                  script{
+                      parallel legacy_8_5_machine_names.collectEntries { vagrant_machine -> [ "${vagrant_machine}": {
+                              stage("$vagrant_machine") {
+                                  sleep(5 * Math.random())
+                                  sh("vagrant destroy -f $vagrant_machine")
+                                  sh("vagrant up $vagrant_machine")
+                                  sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -b'")
+                                  sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/migrate2eurolinux.sh -r /home/vagrant/eurolinux-migration-scripts/vault/vault-8.5.repo -f -v'")
+                                  sh("vagrant ssh $vagrant_machine -c 'sudo reboot' || true")
+                                  sleep(300)
+                                  sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/test_what_non_el_remains_after_migration.sh -t'")
+                                  sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -a'")
+                                  sh("vagrant destroy $vagrant_machine -f")
+                              }
+                          }]
+                      }
+                  }
+                }
+            }
+        }
+        stage("Migrate 8.4 systems to EuroLinux 8.4 and preserve non-EuroLinux packages"){
+            steps{
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                  script{
+                      parallel legacy_8_4_machine_names.collectEntries { vagrant_machine -> [ "${vagrant_machine}": {
+                              stage("$vagrant_machine") {
+                                  sleep(5 * Math.random())
+                                  sh("vagrant destroy -f $vagrant_machine")
+                                  sh("vagrant up $vagrant_machine")
+                                  sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -b'")
+                                  sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/migrate2eurolinux.sh -r /home/vagrant/eurolinux-migration-scripts/vault/vault-8.4.repo -f -v'")
+                                  sh("vagrant ssh $vagrant_machine -c 'sudo reboot' || true")
+                                  sleep(300)
+                                  sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/test_what_non_el_remains_after_migration.sh -t'")
+                                  sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -a'")
+                                  sh("vagrant destroy $vagrant_machine -f")
+                              }
+                          }]
+                      }
+                  }
+                }
+            }
+        }
+    }
+    post {
+        success {
+            echo 'Pipeline finished'
+        }
+        failure {
+            echo 'Pipeline failed'
+                mail to: erecipients,
+                     subject: "Pipeline failed: ${currentBuild.fullDisplayName}",
+                     body: ebody
+        }
+        always {
+            echo 'Running "vagrant destroy -f"'
+            sh("vagrant destroy -f")
+            cleanWs()
+        }
+    }
+}

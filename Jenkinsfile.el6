@@ -1,0 +1,52 @@
+def erecipients = "devel@euro-linux.com"
+def ebody = """
+${currentBuild.fullDisplayName} / ${currentBuild.number}
+Check url: ${currentBuild.absoluteUrl}.
+"""
+
+def 6_10_machine_names = ["centos6", "generic-rhel6", "scientific6"]
+
+pipeline {
+    agent {
+        node {
+          label 'libvirt'
+        }
+    }
+    stages {
+        stage("Migrate 8.6 systems to EuroLinux 8.6"){
+            steps{
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                  script{
+                      parallel 6_10_machine_names.collectEntries { vagrant_machine -> [ "${vagrant_machine}": {
+                              stage("$vagrant_machine") {
+                                  sleep(5 * Math.random())
+                                  sh("vagrant destroy -f $vagrant_machine")
+                                  sh("vagrant up $vagrant_machine")
+                                  sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/check_redhat_assets.sh -b'")
+                                  sh("vagrant ssh $vagrant_machine -c 'sudo /home/vagrant/eurolinux-migration-scripts/migrate2eurolinux.sh'")
+                                  sh("vagrant destroy $vagrant_machine -f")
+                              }
+                          }]
+                      }
+                  }
+                }
+            }
+        }
+    }
+    post {
+        success {
+            echo 'Pipeline finished'
+        }
+        failure {
+            echo 'Pipeline failed'
+                mail to: erecipients,
+                     subject: "Pipeline failed: ${currentBuild.fullDisplayName}",
+                     body: ebody
+        }
+        always {
+            echo 'Running "vagrant destroy -f"'
+            sh("vagrant destroy -f")
+            cleanWs()
+        }
+    }
+}
