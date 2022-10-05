@@ -127,9 +127,7 @@ check_supported_releases() {
     redhat-release*) ;;
     centos-release* | centos-linux-release*) ;;
     sl-release*) ;;
-    el-release*|eurolinux-release*)
-      exit_message "You appear to be already running EuroLinux."
-      ;;
+    el-release*|eurolinux-release*) ;;
     *) exit_message "You appear to be running an unsupported distribution: ${old_release}." ;;
   esac
 }

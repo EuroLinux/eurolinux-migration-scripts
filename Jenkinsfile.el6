@@ -4,7 +4,7 @@ ${currentBuild.fullDisplayName} / ${currentBuild.number}
 Check url: ${currentBuild.absoluteUrl}.
 """
 
-def els_6_10_machine_names = ["centos6", "generic-rhel6", "eurolinux6", "scientific6"]
+def els_6_10_machine_names = ["centos6", "generic-rhel6", "eurolinux6"]
 
 pipeline {
     agent {
