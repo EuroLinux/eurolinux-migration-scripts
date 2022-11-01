@@ -1,3 +1,0 @@
-[submodule "tests/EL-core-functional-tests"]
-	path = tests/EL-core-functional-tests
-	url = https://github.com/EuroLinux/EL-core-functional-tests.git
