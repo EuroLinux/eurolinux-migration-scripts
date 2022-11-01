@@ -119,7 +119,6 @@ congratulations() {
 main() {
   # All function calls.
   check_root
-  check_required_packages
   check_distro
   check_supported_releases
   check_yum_lock
