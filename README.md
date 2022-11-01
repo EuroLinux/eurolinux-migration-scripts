@@ -1,6 +1,6 @@
-# migrate2eurolinux - eld
+# migrate2eld
 
-## Switch from an Enterprise Linux system to EuroLinux Desktop
+## Switch from EuroLinux 9 Server system to EuroLinux Desktop
 
 This script will automatically switch EuroLinux 9 Server system to EuroLinux
 Desktop
