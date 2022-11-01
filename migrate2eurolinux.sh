@@ -58,7 +58,7 @@ check_supported_releases() {
   # overridden later on once a more specific check is performed (this will be
   # explained later once this override is performed).
   case "${old_release}" in
-    el-release*|eurolinux-release*)
+    el-release*|eurolinux-release*) ;;
     redhat-release*) ;;
     almalinux-release*) ;;
     rocky-release*) ;;
