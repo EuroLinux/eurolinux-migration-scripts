@@ -83,6 +83,7 @@ check_yum_lock() {
 create_temp_el_repo() {
   cd "/etc/yum.repos.d/"
   echo "Creating a temporary repo file for migration..."
+  os_version=$(rpm -q "${old_release}" --qf "%{version}")
   case "$os_version" in
     9*)
       cat > "eurolinux-desktop.repo" <<-EOF
