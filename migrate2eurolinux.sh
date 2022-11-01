@@ -81,7 +81,7 @@ check_yum_lock() {
 }
 
 create_temp_el_repo() {
-  cd "$reposdir"
+  cd "/etc/yum.repos.d/"
   echo "Creating a temporary repo file for migration..."
   case "$os_version" in
     9*)
