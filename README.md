@@ -11,8 +11,10 @@ system to EuroLinux 6's and remove only its exclusive packages like eg.
 The following distributions are supported on the x86_64 architecture:
 
 - CentOS 6
-- Red Hat Enterprise Linux 6
 - EuroLinux 6
+- Oracle Linux 6
+- Red Hat Enterprise Linux 6
+- Scientific Linux 6
 
 **If a system has been installed with Secure Boot enabled, make sure that it
 is disabled first before running the script.**
