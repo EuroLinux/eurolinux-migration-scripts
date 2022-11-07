@@ -247,6 +247,23 @@ enabled=1
 gpgcheck=1
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-eurolinux
 
+[centos-vault-base]
+name=CentOS-$releasever - Base
+baseurl=https://vault.centos.org/6.10/os/x86_64/
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-6
+
+[centos-vault-updates]
+name=CentOS-$releasever - Updates
+baseurl=https://vault.centos.org/6.10/updates/x86_64/
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-6
+
+[centos-vault-extras]
+name=CentOS-$releasever - Extras
+baseurl=https://vault.centos.org/6.10/extras/x86_64/
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-6
 EOF
       ;;
     *) exit_message "You appear to be running an unsupported OS version: ${os_version}." ;;
