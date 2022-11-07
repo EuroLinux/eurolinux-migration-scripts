@@ -36,4 +36,9 @@ Vagrant.configure("2") do |config|
     i.vm.hostname = "scientific6"
   end
 
+  config.vm.define "oracle6" do |i|
+    i.vm.box = "eurolinux-vagrant/oracle-linux-6"
+    i.vm.hostname = "oracle6"
+  end
+
 end
