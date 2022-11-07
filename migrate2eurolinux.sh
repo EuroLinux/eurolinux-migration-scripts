@@ -368,6 +368,8 @@ disable_distro_repos() {
     echo "Identify repo files from the base OS..."
     if [[ "$old_release" =~ redhat-release ]]; then
       echo "RHEL detected and repo files are not provided by 'release' package."
+    elif [[ "$old_release" =~ oracle ]]; then
+      export old_release="oraclelinux-release-el6"
     elif [[ "$old_release" =~ el-release ]]; then
       : #do nothing
     else
