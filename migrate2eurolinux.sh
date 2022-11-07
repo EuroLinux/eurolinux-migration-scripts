@@ -14,7 +14,7 @@ skip_warning=""
 # These are all the packages we need to remove. Some may not reside in this
 # array since they'll be swapped later on once EuroLinux repositories have been
 # added.
-bad_packages=(bcache-tools btrfs-progs centos-backgrounds centos-gpg-keys centos-indexhtml centos-linux-release centos-linux-repos centos-logos centos-release centos-release-advanced-virtualization centos-release-ansible26 centos-release-ansible-27 centos-release-ansible-28 centos-release-ansible-29 centos-release-azure centos-release-ceph-jewel centos-release-ceph-luminous centos-release-ceph-nautilus centos-release-ceph-octopus centos-release-configmanagement centos-release-cr centos-release-dotnet centos-release-fdio centos-release-gluster40 centos-release-gluster41 centos-release-gluster5 centos-release-gluster6 centos-release-gluster7 centos-release-gluster8 centos-release-gluster-legacy centos-release-messaging centos-release-nfs-ganesha28 centos-release-nfs-ganesha30 centos-release-nfv-common centos-release-nfv-openvswitch centos-release-openshift-origin centos-release-openstack-queens centos-release-openstack-rocky centos-release-openstack-stein centos-release-openstack-train centos-release-openstack-ussuri centos-release-opstools centos-release-ovirt42 centos-release-ovirt43 centos-release-ovirt44 centos-release-paas-common centos-release-qemu-ev centos-release-qpid-proton centos-release-rabbitmq-38 centos-release-samba411 centos-release-samba412 centos-release-scl centos-release-scl-rh centos-release-storage-common centos-release-virt-common centos-release-xen centos-release-xen-410 centos-release-xen-412 centos-release-xen-46 centos-release-xen-48 centos-release-xen-common centos-repos desktop-backgrounds-basic insights-client libreport-centos libreport-plugin-mantisbt libreport-plugin-rhtsupport libreport-rhel libreport-rhel-anaconda-bugzilla libreport-rhel-bugzilla libdtrace-ctf python3-dnf-plugin-ulninfo python3-syspurpose python-oauth redhat-backgrounds Red_Hat_Enterprise_Linux-Release_Notes-7-en-US redhat-indexhtml redhat-logos redhat-release redhat-release-eula redhat-release-server redhat-support-lib-python redhat-support-tool sl-logos)
+bad_packages=(bcache-tools btrfs-progs centos-backgrounds centos-gpg-keys centos-indexhtml centos-linux-release centos-linux-repos centos-logos centos-release centos-release-advanced-virtualization centos-release-ansible26 centos-release-ansible-27 centos-release-ansible-28 centos-release-ansible-29 centos-release-azure centos-release-ceph-jewel centos-release-ceph-luminous centos-release-ceph-nautilus centos-release-ceph-octopus centos-release-configmanagement centos-release-cr centos-release-dotnet centos-release-fdio centos-release-gluster40 centos-release-gluster41 centos-release-gluster5 centos-release-gluster6 centos-release-gluster7 centos-release-gluster8 centos-release-gluster-legacy centos-release-messaging centos-release-nfs-ganesha28 centos-release-nfs-ganesha30 centos-release-nfv-common centos-release-nfv-openvswitch centos-release-openshift-origin centos-release-openstack-queens centos-release-openstack-rocky centos-release-openstack-stein centos-release-openstack-train centos-release-openstack-ussuri centos-release-opstools centos-release-ovirt42 centos-release-ovirt43 centos-release-ovirt44 centos-release-paas-common centos-release-qemu-ev centos-release-qpid-proton centos-release-rabbitmq-38 centos-release-samba411 centos-release-samba412 centos-release-scl centos-release-scl-rh centos-release-storage-common centos-release-virt-common centos-release-xen centos-release-xen-410 centos-release-xen-412 centos-release-xen-46 centos-release-xen-48 centos-release-xen-common centos-repos desktop-backgrounds-basic insights-client libreport-centos libreport-plugin-mantisbt libreport-plugin-rhtsupport libreport-rhel libreport-rhel-anaconda-bugzilla libreport-rhel-bugzilla libdtrace-ctf oracle-logos oraclelinux-release oraclelinux-release-6Server oraclelinux-release-notes-6Server python3-dnf-plugin-ulninfo python3-syspurpose python-oauth redhat-backgrounds Red_Hat_Enterprise_Linux-Release_Notes-7-en-US redhat-indexhtml redhat-logos redhat-release redhat-release-eula redhat-release-server redhat-support-lib-python redhat-support-tool sl-logos sl-release)
 
 
 usage() {
@@ -128,6 +128,7 @@ check_supported_releases() {
     centos-release* | centos-linux-release*) ;;
     sl-release*) ;;
     el-release*|eurolinux-release*) ;;
+    oracle*-release*) ;;
     *) exit_message "You appear to be running an unsupported distribution: ${old_release}." ;;
   esac
 }
@@ -212,10 +213,11 @@ for repo in base.repos.listEnabled():
 }
 
 grab_gpg_keys() {
-  # Get EuroLinux public GPG keys; store them in a predefined location before
+  # Get EuroLinux and CentOS 6 public GPG keys; store them in a predefined location before
   # adding any repositories.
   echo "Grabbing EuroLinux GPG keys..."
   curl "https://fbi.cdn.euro-linux.com/security/RPM-GPG-KEY-eurolinux" > "/etc/pki/rpm-gpg/RPM-GPG-KEY-eurolinux"
+  curl "https://vault.centos.org/RPM-GPG-KEY-CentOS-6" > "/etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-6"
 }
 
 create_temp_el_repo() {
@@ -247,6 +249,23 @@ enabled=1
 gpgcheck=1
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-eurolinux
 
+[centos-vault-base]
+name=CentOS-$releasever - Base
+baseurl=https://vault.centos.org/6.10/os/x86_64/
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-6
+
+[centos-vault-updates]
+name=CentOS-$releasever - Updates
+baseurl=https://vault.centos.org/6.10/updates/x86_64/
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-6
+
+[centos-vault-extras]
+name=CentOS-$releasever - Extras
+baseurl=https://vault.centos.org/6.10/extras/x86_64/
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-6
 EOF
       ;;
     *) exit_message "You appear to be running an unsupported OS version: ${os_version}." ;;
@@ -349,6 +368,8 @@ disable_distro_repos() {
     echo "Identify repo files from the base OS..."
     if [[ "$old_release" =~ redhat-release ]]; then
       echo "RHEL detected and repo files are not provided by 'release' package."
+    elif [[ "$old_release" =~ oracle ]]; then
+      export old_release="oraclelinux-release-el6"
     elif [[ "$old_release" =~ el-release ]]; then
       : #do nothing
     else
@@ -435,10 +456,10 @@ main() {
   check_systemwide_python
   find_repos_directory
   find_enabled_repos
+  disable_distro_repos
   grab_gpg_keys
   create_temp_el_repo
   register_to_euroman
-  disable_distro_repos
   remove_centos_yum_branding
   force_el_release
   remove_leftovers
