@@ -160,7 +160,6 @@ management service with 'subscription-manager unregister', then run this script 
     bad_packages+=( "$(rpm -qf /etc/yum.repos.d/*.repo --qf '%{name}\n' | sort -u | grep -v '^el-release' | tr '\n' ' ')" )
     set -e
   fi
-  alias yum="yum --disablerepo=sl --disablerepo=sl-security --disablerepo=sl6x --disablerepo=sl6x-security"
 }
 
 check_yum_lock() {
@@ -436,10 +435,10 @@ main() {
   check_systemwide_python
   find_repos_directory
   find_enabled_repos
+  disable_distro_repos
   grab_gpg_keys
   create_temp_el_repo
   register_to_euroman
-  disable_distro_repos
   remove_centos_yum_branding
   force_el_release
   remove_leftovers
