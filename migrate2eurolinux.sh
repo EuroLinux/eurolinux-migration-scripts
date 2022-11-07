@@ -212,10 +212,11 @@ for repo in base.repos.listEnabled():
 }
 
 grab_gpg_keys() {
-  # Get EuroLinux public GPG keys; store them in a predefined location before
+  # Get EuroLinux and CentOS 6 public GPG keys; store them in a predefined location before
   # adding any repositories.
   echo "Grabbing EuroLinux GPG keys..."
   curl "https://fbi.cdn.euro-linux.com/security/RPM-GPG-KEY-eurolinux" > "/etc/pki/rpm-gpg/RPM-GPG-KEY-eurolinux"
+  curl "https://vault.centos.org/RPM-GPG-KEY-CentOS-6" > "/etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-6"
 }
 
 create_temp_el_repo() {
