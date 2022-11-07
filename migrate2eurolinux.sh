@@ -128,6 +128,7 @@ check_supported_releases() {
     centos-release* | centos-linux-release*) ;;
     sl-release*) ;;
     el-release*|eurolinux-release*) ;;
+    oracle*-release*) ;;
     *) exit_message "You appear to be running an unsupported distribution: ${old_release}." ;;
   esac
 }
