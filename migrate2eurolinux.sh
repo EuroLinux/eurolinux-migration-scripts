@@ -296,9 +296,51 @@ register_to_euroman() {
   echo "Determining el_org_id based on your registration name & password..."
   el_org_id=$(python2 -c "
 import xmlrpclib
+import httplib
 import rhn.transports 
+import socks
 import ssl
 import sys
+
+class ServerProxy(xmlrpclib.ServerProxy):
+  def __init__(self, uri, transport=None, encoding=None, verbose=0,
+       allow_none=1, use_datetime=0, proxy=None):
+    # If a proxy is provided, set up the proxy connection
+    if proxy:
+    self.proxy = proxy
+    if not isinstance(self.proxy, dict):
+      raise TypeError("proxy must be a dictionary")
+    if not "host" in self.proxy:
+      raise KeyError("proxy must contain a host key")
+    self.proxy_type = self.proxy.get("type", "http")
+    self.proxy_rdns = self.proxy.get("rdns", True)
+    self.proxy_user = self.proxy.get("user")
+    self.proxy_pass = self.proxy.get("pass")
+    self.proxy_headers = self.proxy.get("headers", {})
+    self.proxy_headers.update(self.default_headers)
+    self.transport = httplib.HTTPConnection
+    if self.proxy_type == "socks4":
+      self.transport = httplib.SOCKS4HTTPConnection
+    elif self.proxy_type == "socks5":
+      self.transport = httplib.SOCKS5HTTPConnection
+    elif self.proxy_type == "https":
+      self.transport = httplib.HTTPSConnection
+      self.proxy_type = "http"
+    else:
+      self.transport = httplib.HTTPConnection
+    # Otherwise, use the default transport
+    else:
+    self.transport = transport
+    xmlrpclib.ServerProxy.__init__(self, uri, transport, encoding,
+             verbose, allow_none, use_datetime)
+
+# Set up a proxy connection
+#proxy_server = {"host": "proxy.example.com", "port": 8080, "type": "https"}
+
+if proxy_server:
+  proxy = proxy_server
+else:
+  proxy = None
 
 EUROMAN_URL = 'https://xmlrpc.elupdate.euro-linux.com/rpc/api'
 EUROMAN_FQDN = 'elupdate.euro-linux.com'
@@ -306,14 +348,14 @@ EUROMAN_FQDN = 'elupdate.euro-linux.com'
 context = hasattr(ssl, '_create_unverified_context') and ssl._create_unverified_context() or None
 client = None
 try: # EuroLinux7
-  client = xmlrpclib.ServerProxy(EUROMAN_URL,transport=xmlrpclib.SafeTransport(use_datetime=True, context=context))
+  client = ServerProxy(EUROMAN_URL,transport=xmlrpclib.SafeTransport(use_datetime=True, context=context),proxy=proxy)
 except Exception as e:
   pass
 if client is None: # EuroLinux6
    try:
-     client = xmlrpclib.ServerProxy(EUROMAN_URL,transport=xmlrpclib.SafeTransport(use_datetime=True, context=context))
+     client = ServerProxy(EUROMAN_URL,transport=xmlrpclib.SafeTransport(use_datetime=True, context=context),proxy=proxy)
    except:
-     client = xmlrpclib.ServerProxy(EUROMAN_URL)
+     client = ServerProxy(EUROMAN_URL,proxy=proxy)
 
 try:
   key = client.auth.login(\"$el_euroman_user\",\"$el_euroman_password\")
