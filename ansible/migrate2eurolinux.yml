@@ -1,0 +1,62 @@
+---
+- name: Migrate to EuroLinux
+  become: true
+  hosts: all
+  gather_facts: false
+  vars:
+    script_opts: "-f"
+  tasks:
+    - name: Wait for system to become reachable
+      ansible.builtin.wait_for_connection:
+
+    - name: Gather facts for the first time
+      ansible.builtin.setup:
+      register: osinfo
+
+    - name: Check if host requires migration
+      ansible.builtin.shell: "set -euo pipefail && kernver=$(uname -a | awk -F' ' '{print $3}') &&  rpm -qi kernel-$kernver |grep Vendor|awk -F': ' '{print $2}'"
+      register: vendor
+      when:
+        - osinfo.ansible_facts.ansible_distribution == "EuroLinux"
+
+    - name: End the play for hosts that running EuroLinux
+      ansible.builtin.meta: end_host
+      when:
+        - osinfo.ansible_facts.ansible_distribution == "EuroLinux"
+        - vendor is defined and vendor.stdout == "EuroLinux"
+
+    - name: Download migration-scripts
+      ansible.builtin.get_url:
+        url: "{{ item }}"
+        dest: "/tmp"
+        mode: '755'
+      loop:
+        - "https://github.com/EuroLinux/eurolinux-migration-scripts/raw/master/migrate2eurolinux.sh"
+        - "https://github.com/EuroLinux/eurolinux-migration-scripts/raw/master/remove_kernels.sh"
+
+    - name: Begin migration
+      block:
+        - name: Execute migration script
+          ansible.builtin.command: "bash /tmp/migrate2eurolinux.sh {{ script_opts }}"
+          args:
+            creates: "/etc/el-release"
+          register: result
+
+        - name: Reboot a machine
+          ansible.builtin.reboot:
+            reboot_timeout: 120
+
+        - name: Gather facts after migration
+          ansible.builtin.setup:
+          register: hostinfo
+
+        - name: Display message
+          ansible.builtin.debug:
+            msg:
+              - "All done!"
+              - "Host: {{ ansible_host }} was successfully migrated to {{ hostinfo.ansible_facts.ansible_distribution }} {{ hostinfo.ansible_facts.ansible_distribution_major_version }}."
+
+      rescue:
+        - name: Print error message and wait
+          ansible.builtin.pause:
+            prompt: "{{ result.stderr_lines }}"
